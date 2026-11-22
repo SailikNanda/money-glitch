@@ -91,22 +91,37 @@ If `data/client_secrets.json` does NOT already exist, invoke the Antigravity `br
 
 ---
 
-### Phase 4: Autonomous Production & 100% Unique Copywriting
+### Phase 4: Autonomous Production, Zigzag Diversification & Publishing
 Antigravity acts as the Supreme Content Director and Executive Producer:
 
-1. **Content Discovery**:
-   - Scan top-velocity trending gaming streams (IShowSpeed, Kai Cenat, GTA 6 leaks/moments).
-2. **Dynamic Climax Reasoning (No Generic Presets)**:
-   - Analyze each video individually: audio pitch, streamer scream timestamps, and chat spikes.
+1. **Universal Real-Time Trend Discovery (No Hardcoded Niches/Streamers)**:
+   - **Never hardcode just one game or one creator.**
+   - Dynamically scan whatever is truly trending in real time across 4 core verticals:
+     - **Gaming**: Top viral streamers (IShowSpeed, Kai Cenat, Jynxzi, Fanum, Sketch, xQc, etc.) and trending titles (GTA 6, Fortnite, Valorant, Call of Duty, Minecraft).
+     - **Movies & Cinema**: Trending official movie trailers, box office hype, anime battle climaxes, blockbuster pop culture.
+     - **Sports & Athletics**: Viral NBA buzzer beaters, UFC knockouts, Champions League / Premier League goals, crazy athletic moments.
+     - **Viral Internet News & Culture**: Real-time breaking internet debates, viral memes, and high-velocity social phenomena.
+2. **Zigzag Creator & Topic Rotation Protocol (Creator Diversity)**:
+   - **Strict Rule:** Never publish the same streamer or sub-topic consecutively.
+   - Execute a smart **Zigzag Rotation**:
+     - Day 1: IShowSpeed (Gaming)
+     - Day 2: Kai Cenat (Gaming) or Trending Movie Trailer Climax (Cinema)
+     - Day 3: Jynxzi (Gaming) or Viral NBA/UFC KO (Sports)
+     - Day 4: Fanum / Sketch (Gaming) or Viral Internet Phenomenon (Trends)
+     - Day 5: Return to IShowSpeed after full diverse rotation!
+   - This keeps the channel's audience engaged, broadens algorithmic reach, and prevents creator fatigue.
+3. **Dynamic Climax Reasoning (No Generic Presets)**:
+   - Analyze each video individually: audio pitch, streamer scream timestamps, crowd reactions, and action peaks.
    - Set optimal 25–35s duration with climax placed at 55%–65% through the clip for maximum retention.
-3. **100% Unique Copywriting & Non-Repetitive Hashtags**:
+4. **100% Unique Copywriting & Dynamic Hashtags**:
    - **Never copy-paste identical hashtags across videos.**
-   - Tailor tags to specific streamer (`#IShowSpeed`, `#KaiCenat`), specific action (`#GamingPhysics`, `#PoliceEscape`, `#GamingFails`), and specific game (`#GTA6`, `#Gaming`).
+   - Tailor tags to specific creator, specific sport/movie/game, and specific action (`#PoliceEscape`, `#BuzzerBeater`, `#GamingRage`, `#MovieClips`, `#Shorts`).
    - Create curiosity-gap hook titles matching the exact scene event.
-4. **Retention Engine Execution**:
+5. **Retention Engine Execution**:
    - 3.5s pattern interrupt cadence (Punch-In 1.18x zooms + voice peak camera shakes).
    - Kinetic `.ass` subtitles in 9:16 safe zone with Neon Yellow (`#FACC15`) active word highlights.
    - Mobile OLED saturation boost (`eq=saturation=1.28:contrast=1.06`).
    - Smart audio sidechain ducking (-40% under speech, swelling on climax drops).
-5. **Publishing Guard**:
+6. **Publishing Guard & Continuous Lifecycle**:
    - Upload through `src/youtube_uploader.py` honoring the 4-hour spacing window and maximum 3 uploads/day limit.
+   - **Lifecycle Management:** Runs continuously (`python run_autopilot.py daemon`) as long as the PC is turned ON. When the PC shuts down, execution halts safely with SQLite persistence. When the PC turns on, it seamlessly resumes from where it left off!

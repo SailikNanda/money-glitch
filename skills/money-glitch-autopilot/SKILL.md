@@ -89,24 +89,39 @@ If `data/client_secrets.json` is missing, launch the Antigravity `browser` subag
 
 ---
 
-### Step 4: Autonomous Production & 100% Unique Copywriting
+### Step 4: Autonomous Production, Zigzag Diversification & Publishing
 Antigravity acts as the Chief Content Officer and Master Editor:
 
-1. **Trend & Stream Scouting**:
-   - Scan top-velocity gaming streams (IShowSpeed, Kai Cenat, GTA 6 leaks/highlights).
-2. **Dynamic Climax Reasoning (No Generic Presets)**:
-   - Antigravity scans the audio waveform and transcript for scream peaks, instant karma, funny NPC interactions, or heist clutches.
+1. **Universal Real-Time Trend Discovery (No Hardcoded Niches/Streamers)**:
+   - **Never hardcode just one game or one creator.**
+   - Dynamically discover real-time trends across 4 core verticals:
+     - **Gaming**: Top viral streamers (IShowSpeed, Kai Cenat, Jynxzi, Fanum, Sketch, xQc, etc.) and trending titles (GTA 6, Fortnite, Valorant, Call of Duty, Minecraft).
+     - **Movies & Cinema**: Trending official movie trailers, box office hype, anime battle climaxes, blockbuster pop culture.
+     - **Sports & Athletics**: Viral NBA buzzer beaters, UFC knockouts, Champions League / Premier League goals, crazy athletic moments.
+     - **Viral Internet News & Culture**: Real-time breaking internet debates, viral memes, and high-velocity social phenomena.
+2. **Zigzag Creator & Topic Rotation Protocol (Creator Diversity)**:
+   - **Strict Rule:** Never publish the same streamer or sub-topic consecutively.
+   - Execute a smart **Zigzag Rotation**:
+     - Day 1: IShowSpeed (Gaming)
+     - Day 2: Kai Cenat (Gaming) or Trending Movie Trailer Climax (Cinema)
+     - Day 3: Jynxzi (Gaming) or Viral NBA/UFC KO (Sports)
+     - Day 4: Fanum / Sketch (Gaming) or Viral Internet Phenomenon (Trends)
+     - Day 5: Return to IShowSpeed after full diverse rotation!
+   - This keeps the channel's audience engaged, broadens algorithmic reach, and prevents creator fatigue.
+3. **Dynamic Climax Reasoning (No Generic Presets)**:
+   - Antigravity scans the audio waveform and transcript for scream peaks, instant karma, funny NPC interactions, movie climax drops, or athletic clutches.
    - Computes clip duration (25–35s) and centers the climax at 55%–65% for maximum viewer retention.
-3. **100% Unique Copywriting & Dynamic Hashtags**:
-   - Generate unique, curiosity-gap hook titles for every single video (e.g. `SPEED'S REACTION TO GTA 6 BROKE THE INTERNET! 💀` vs `THE POLICE AI IN GTA 6 IS ACTUALLY TERRIFYING! 🚨`).
+4. **100% Unique Copywriting & Dynamic Hashtags**:
+   - Generate unique, curiosity-gap hook titles for every single video (e.g. `SPEED'S REACTION TO GTA 6 BROKE THE INTERNET! 💀` vs `THE POLICE AI IN GTA 6 IS ACTUALLY TERRIFYING! 🚨` vs `THE GREATEST BUZZER BEATER IN RECENT HISTORY! 🏀🔥`).
    - Write bespoke descriptions with proper creator credit and Fair Use disclaimers.
-   - Select dynamically tailored hashtags matching the specific action (`#GamingPhysics`, `#PoliceEscape`, `#GamingRage`), the streamer (`#IShowSpeed`, `#KaiCenat`), and the game (`#GTA6`).
+   - Select dynamically tailored hashtags matching the specific action (`#GamingPhysics`, `#PoliceEscape`, `#BuzzerBeater`, `#MovieClips`), the creator, and the category.
    - **Never output identical hashtag strings across consecutive uploads.**
-4. **High-Retention Video Editing**:
-   - Split 16:9 gameplay and facecam into 9:16 vertical stack.
+5. **High-Retention Video Editing**:
+   - Split 16:9 gameplay/reaction and facecam into 9:16 vertical stack.
    - 3.5s pattern interrupts: Punch-in zooms (1.18x) and voice-peak camera shakes.
    - Kinetic `.ass` subtitles with Neon Yellow (`#FACC15`) active spoken words.
    - Mobile OLED saturation boost (`saturation=1.28`).
    - Soundboard meme cues (`vine_boom`, `wasted`, `emotional_damage`) with -40% phonk audio ducking.
-5. **Publishing Guard**:
+6. **Publishing Guard & Continuous Lifecycle**:
    - Publish via `src/youtube_uploader.py` honoring the 4-hour spacing window and 3 uploads/day limit.
+   - **Lifecycle Management:** Runs continuously (`python run_autopilot.py daemon`) as long as the PC is turned ON. When the PC shuts down, execution halts safely with SQLite persistence. When the PC turns on, it seamlessly resumes from where it left off!

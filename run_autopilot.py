@@ -39,6 +39,10 @@ def main():
     # Command: cycle
     p_cycle = subparsers.add_parser("cycle", help="Execute one full autonomous iteration")
 
+    # Command: daemon (Continuous Autonomous Engine)
+    p_daemon = subparsers.add_parser("daemon", help="Run continuous background autonomous loop whenever PC is on")
+    p_daemon.add_argument("--interval", type=int, default=1800, help="Heartbeat check interval in seconds (default: 1800s)")
+
     # Command: dashboard
     p_dash = subparsers.add_parser("dashboard", help="Start the FastAPI web control center")
     p_dash.add_argument("--host", type=str, default="127.0.0.1", help="Host address")
@@ -88,6 +92,12 @@ def main():
         if res.get("upload_error"):
             print(f"Upload Status Notice:  {res.get('upload_error')}")
         print("=======================================================\n")
+
+    elif args.command == "daemon":
+        scheduler = AutonomousScheduler()
+        print(f"\n[STARTING] Money Glitch Continuous Autonomous Daemon (Heartbeat: {args.interval}s)")
+        print("Autonomous Lifecycle: Runs whenever PC is ON. Halts cleanly when PC is OFF. Resumes on reboot.\n")
+        scheduler.run_continuous_daemon(check_interval_seconds=args.interval)
 
     elif args.command == "status":
         auto_pub = get_setting("auto_publish_enabled", False)

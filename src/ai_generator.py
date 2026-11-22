@@ -149,7 +149,7 @@ class AntigravityDirector:
         topic_clean = game_topic.upper()
         streamer_clean = streamer_name.upper()
 
-        # Dynamic high-CTR curiosity gap hook titles by Antigravity AI
+        # Dynamic high-CTR curiosity gap hook titles by Antigravity AI across all creators & genres
         if "SPEED" in streamer_clean or "ISHOWSPEED" in streamer_clean:
             hook_title = f"SPEED BROKE {topic_clean} ALREADY?! 💀"
             keywords = ["SPEED", topic_clean, "SCREAM", "WILD", "NO WAY"]
@@ -157,6 +157,26 @@ class AntigravityDirector:
         elif "KAI" in streamer_clean:
             hook_title = f"KAI CENAT DID NOT EXPECT THIS IN {topic_clean}! 😭"
             keywords = ["KAI", topic_clean, "SHOCKED", "CRAZY", "EPIC"]
+            sfx = "vine_boom"
+        elif "JYNXZI" in streamer_clean:
+            hook_title = f"JYNXZI'S REACTION TO THIS IS PURE GOLD! 💀"
+            keywords = ["JYNXZI", "RAGE", "REACTION", "WILD", "NO WAY"]
+            sfx = "wasted"
+        elif "FANUM" in streamer_clean:
+            hook_title = f"FANUM TAX CAUGHT ON 4K STREAM! 😭"
+            keywords = ["FANUM", "STREAM", "FUNNY", "MOMENT", "W"]
+            sfx = "vine_boom"
+        elif "SKETCH" in streamer_clean:
+            hook_title = f"WHAT'S UP BROTHER?! SKETCH DID THIS! 💀"
+            keywords = ["SKETCH", "BROTHER", "WHATSUP", "HILARIOUS", "EPIC"]
+            sfx = "vine_boom"
+        elif any(w in topic_clean for w in ["SPORT", "NBA", "UFC", "GOAL", "BASKETBALL", "FOOTBALL"]):
+            hook_title = f"THE GREATEST PLAY IN SPORTS HISTORY! 🏆🔥"
+            keywords = ["SPORTS", "CLUTCH", "LEGENDARY", "INSANE", "UNREAL"]
+            sfx = "vine_boom"
+        elif any(w in topic_clean for w in ["CINEMA", "TRAILER", "MOVIE", "ANIME", "FILM"]):
+            hook_title = f"THIS {topic_clean} SCENE GAVE EVERYONE CHILLS! 🎬⚡"
+            keywords = [topic_clean, "EPIC", "CINEMATIC", "CHILLS", "INSANE"]
             sfx = "vine_boom"
         else:
             hook_title = f"HE ACTUALLY BROKE {topic_clean}! 💀"
@@ -197,7 +217,13 @@ class AntigravityDirector:
 
         # Action / Context extraction
         action_type = "glitch"
-        if any(w in title_upper for w in ["RAGE", "SCREAM", "ANGRY", "FREAKOUT"]):
+        if any(w in title_upper for w in ["NBA", "GOAL", "UFC", "KNOCKOUT", "KO", "SOCCER", "FOOTBALL", "BASKETBALL", "SPORTS"]):
+            action_type = "sports"
+        elif any(w in title_upper for w in ["TRAILER", "MOVIE", "CINEMA", "ANIME", "MARVEL", "TEASER", "FILM"]):
+            action_type = "cinema"
+        elif any(w in title_upper for w in ["NEWS", "VIRAL", "TREND", "TIKTOK", "INTERNET", "BREAKING", "DRAMA"]):
+            action_type = "trend_news"
+        elif any(w in title_upper for w in ["RAGE", "SCREAM", "ANGRY", "FREAKOUT"]):
             action_type = "rage"
         elif any(w in title_upper for w in ["CAR", "CHASE", "TANK", "DRIVE", "POLICE"]):
             action_type = "chase"
@@ -208,8 +234,26 @@ class AntigravityDirector:
         elif any(w in title_upper for w in ["SPEED", "ISHOWSPEED"]):
             action_type = "speed_moment"
 
-        # Unique Hook Title Variety Matrix (Curiosity Gap + Emotional Triggers)
+        # Unique Hook Title Variety Matrix (Universal Multi-Genre)
         hook_matrices = {
+            "sports": [
+                f"THE GREATEST BUZZER BEATER IN SPORTS HISTORY! 🏀🔥",
+                f"THIS KNOCKOUT LEFT THE ENTIRE ARENA SILENT! 🥊💀",
+                f"NO WAY HE PULLED OFF THIS SHOT IN THE 90TH MINUTE! ⚽😱",
+                f"THE MOST DISRESPECTFUL PLAY OF THE YEAR! 🏆🔥"
+            ],
+            "cinema": [
+                f"THIS CINEMATIC SCENE SHOCKED EVERYONE IN THEATERS! 🍿🔥",
+                f"THE PLOT TWIST NOBODY SAW COMING IN {topic.upper()}! 🤯",
+                f"THIS TRAILER CLIMAX GAVE THE ENTIRE INTERNET CHILLS! 🎬⚡",
+                f"THE MOST EPIC 30 SECONDS IN CINEMA HISTORY! 💥🎬"
+            ],
+            "trend_news": [
+                f"THE ENTIRE INTERNET CANNOT STOP TALKING ABOUT THIS! 🚨",
+                f"THIS VIRAL MOMENT JUST BROKE EVERY ALGORITHM! 📈💀",
+                f"HOW DID NOBODY NOTICE THIS UNTIL RIGHT NOW?! 😱",
+                f"THE WEIRDEST VIRAL PHENOMENON OF THE YEAR! 😳🔥"
+            ],
             "rage": [
                 f"{streamer.upper()} COMPLETELY LOST HIS MIND IN {topic.upper()}! 💀",
                 f"THE MOST EXPENSIVE RAGE IN {topic.upper()} HISTORY! 😭",
@@ -231,8 +275,8 @@ class AntigravityDirector:
             "clutch": [
                 f"0.01% CHANCE TO HIT THIS SHOT IN {topic.upper()}! 🎯",
                 f"HE ACCIDENTALLY DISCOVERED THIS {topic.upper()} SECRET! 🤫",
-                f"THE GREATEST 1000 IQ HEIST PLAY IN {topic.upper()}! 🔥",
-                f"ROCKSTAR DID NOT WANT PLAYERS TO FIND THIS IN {topic.upper()}! 🤯"
+                f"THE GREATEST 1000 IQ PLAY IN {topic.upper()}! 🔥",
+                f"THEY DID NOT WANT PLAYERS TO FIND THIS IN {topic.upper()}! 🤯"
             ],
             "speed_moment": [
                 f"SPEED'S REACTION TO {topic.upper()} BROKE THE INTERNET! 💀",
@@ -244,7 +288,7 @@ class AntigravityDirector:
                 f"HE ACCIDENTALLY BROKE {topic.upper()} PHYSICS! 💀",
                 f"THE WEIRDEST GLITCH IN {topic.upper()} SO FAR! 🐛",
                 f"WAIT TILL THE END OF THIS {topic.upper()} MOMENT! 💀",
-                f"HE FOUND A GLITCH ROCKSTAR MISSED IN {topic.upper()}! 🚨"
+                f"HE FOUND A GLITCH THEY MISSED IN {topic.upper()}! 🚨"
             ]
         }
 
@@ -272,6 +316,9 @@ class AntigravityDirector:
         streamer_tag = f"#{streamer.replace(' ', '')}" if streamer and streamer != "Streamer" else "#GamingMoments"
         
         action_tags_pool = {
+            "sports": ["#SportsHighlights", "#BuzzerBeater", "#InsanePlay", "#UFC", "#NBA"],
+            "cinema": ["#MovieClips", "#Trailers", "#CinemaMoments", "#Cinematic", "#BoxOffice"],
+            "trend_news": ["#TrendingNews", "#InternetCulture", "#ViralMoments", "#PopCulture"],
             "rage": ["#GamingRage", "#FunnyGaming", "#StreamFails", "#RageQuit"],
             "chase": ["#CarChase", "#PoliceEscape", "#GamingPhysics", "#Speedrun"],
             "npc": ["#NPCMoments", "#GamingAI", "#FunnyClips", "#OpenWorld"],

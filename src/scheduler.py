@@ -100,15 +100,16 @@ class AutonomousScheduler:
         authorized_candidates.sort(key=_has_local_file)
         results["authorized_eligible"] = len(authorized_candidates)
 
-        # Step 3: Clipping Generation (enforce daily candidate target 5-10)
+        # Step 3: Clipping Generation (enforce daily candidate target 5-10 with Zigzag Diversification)
         today_clips = [c for c in list_clips(limit=50) if c.get("created_at", "").startswith(datetime.now(timezone.utc).strftime("%Y-%m-%d"))]
         if len(today_clips) < DAILY_MAX_CANDIDATE_CLIPS and authorized_candidates:
-            for cand in authorized_candidates[:1]:
-                logger.info(f"Generating Shorts for authorized candidate: {cand['title']}")
+            cand = self._select_zigzag_candidate(authorized_candidates)
+            if cand:
+                logger.info(f"Generating Shorts for Zigzag candidate: {cand['title']}")
                 clips = self.clipping_engine.process_video_to_shorts(
                     source_path=cand.get("url"), # or local source
                     source_video_id=cand["video_id"],
-                    topic=cand.get("category", "GTA 6"),
+                    topic=cand.get("category", "Trending"),
                     clip_title_prefix=cand["title"][:40]
                 )
                 if clips:
@@ -167,15 +168,20 @@ class AutonomousScheduler:
             purge_temporary_stream_files()
             return results
 
-        # Get highest scoring ready or queued clip
+        # Get highest scoring ready or queued clip using Zigzag Diversification
         ready_clips = [c for c in list_clips(limit=20) if c.get("status") in ("ready", "queued")]
         if not ready_clips:
             logger.info("No ready clips in queue for publication.")
             purge_temporary_stream_files()
             return results
 
-        top_clip = ready_clips[0]
-        logger.info(f"Selected top clip for publication: ID {top_clip['id']} - {top_clip['title']} (Virality: {top_clip['virality_score']})")
+        top_clip = self._select_zigzag_clip_to_upload(ready_clips)
+        if not top_clip:
+            logger.info("Could not resolve eligible zigzag clip for publication.")
+            purge_temporary_stream_files()
+            return results
+
+        logger.info(f"Selected Zigzag clip for publication: ID {top_clip['id']} - {top_clip['title']} (Virality: {top_clip['virality_score']})")
 
         # Optional Invideo polish & spec verification
         enhanced = self.invideo_enhancer.enhance_clip(top_clip["clip_file"])
@@ -239,3 +245,81 @@ class AutonomousScheduler:
                 pass
 
         return True, "Upload window open."
+
+    def _select_zigzag_candidate(self, candidates: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """
+        Zigzag Creator & Topic Diversification Selection:
+        Rotates between distinct creators and categories.
+        Avoids posting from the same creator or same sub-niche consecutively.
+        """
+        if not candidates:
+            return None
+
+        # Fetch recent uploads to inspect recently published creators and categories
+        recent_published = list_published(limit=10)
+        recent_titles_lower = [p.get("title", "").lower() for p in recent_published]
+
+        # Prioritize candidates from creators that do NOT appear in the most recent uploads
+        def _zigzag_penalty(cand):
+            title = cand.get("title", "").lower()
+            category = cand.get("category", "gaming").lower()
+
+            penalty = 0
+            for idx, rtitle in enumerate(recent_titles_lower[:4]):
+                for creator in ["speed", "kai", "jynxzi", "fanum", "sketch", "gta", "cinema", "sports"]:
+                    if creator in title and creator in rtitle:
+                        penalty += (4 - idx) * 15
+
+            # Local file bonus (ready for immediate processing)
+            has_file = Path(cand.get("url", "")).exists() or (WORKSPACE_DIR / "clips" / cand.get("url", "")).exists()
+            file_bonus = -10 if has_file else 0
+
+            return penalty + file_bonus
+
+        sorted_candidates = sorted(candidates, key=_zigzag_penalty)
+        chosen = sorted_candidates[0]
+        logger.info(f"[Zigzag Engine] Selected candidate: '{chosen.get('title')}' (Category: {chosen.get('category')})")
+        return chosen
+
+    def _select_zigzag_clip_to_upload(self, ready_clips: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """
+        Selects next clip to publish ensuring creator & genre zigzag rotation.
+        """
+        if not ready_clips:
+            return None
+
+        recent_published = list_published(limit=10)
+        recent_titles_lower = [p.get("title", "").lower() for p in recent_published]
+
+        def _clip_penalty(clip):
+            title = clip.get("title", "").lower()
+            penalty = 0
+            for idx, rtitle in enumerate(recent_titles_lower[:4]):
+                for creator in ["speed", "kai", "jynxzi", "fanum", "sketch", "gta", "cinema", "sports"]:
+                    if creator in title and creator in rtitle:
+                        penalty += (4 - idx) * 15
+
+            virality = float(clip.get("virality_score", 90.0))
+            return penalty - virality
+
+        sorted_clips = sorted(ready_clips, key=_clip_penalty)
+        return sorted_clips[0]
+
+    def run_continuous_daemon(self, check_interval_seconds: int = 1800):
+        """
+        Continuous Autonomous Studio Daemon.
+        Runs as long as the computer is turned ON.
+        When the computer is shut down, execution halts cleanly.
+        When restarted, it resumes from SQLite state seamlessly without lost pacing.
+        """
+        logger.info(f"[Lifecycle] Starting Continuous Autonomous Daemon (Interval: {check_interval_seconds}s)")
+        while True:
+            try:
+                logger.info(f"[Lifecycle Heartbeat] Running autonomous cycle @ {datetime.now(self.tz).strftime('%Y-%m-%d %H:%M:%S %Z')}")
+                res = self.run_full_pipeline_iteration()
+                logger.info(f"[Lifecycle Cycle Complete] Uploaded: {res.get('uploaded', 0)} | Clips: {res.get('clips_generated', 0)}")
+            except Exception as e:
+                logger.error(f"[Lifecycle Error] Daemon cycle error: {e}")
+
+            logger.info(f"[Lifecycle Sleeping] Next heartbeat in {check_interval_seconds}s (Will resume instantly if machine restarts)...")
+            time.sleep(check_interval_seconds)

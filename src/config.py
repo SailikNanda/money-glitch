@@ -43,30 +43,54 @@ DAILY_MAX_PUBLISHED_SHORTS = 3   # Optimal safe limit for YouTube algorithm (avo
 MIN_UPLOAD_SPACING_HOURS = 4     # Required gap between uploads to protect channel health
 AUTONOMOUS_MODE = True           # Auto-pipeline: Discover -> Clip -> Meme Edit -> AI Title -> Queue -> Upload
 
-# Topic Priorities & Dynamic Multi-Genre Weights (Dynamic Trend Engine)
+# Topic Priorities & Dynamic Multi-Genre Weights (Dynamic Real-Time Trend Engine)
 TOPIC_WEIGHTS = {
-    "gaming": 0.40,      # Top viral streamer reactions, fails, clutches (Speed, Kai Cenat, GTA 6)
-    "cinema": 0.35,      # Trending movie trailers, anime climaxes, blockbuster pop culture
-    "trends": 0.25,      # Real-time breakout internet & entertainment trends
+    "gaming": 0.35,      # Viral streamers (Speed, Kai, Jynxzi, Fanum, Sketch) & trending games (GTA 6, etc.)
+    "cinema": 0.25,      # Trending official movie trailers, anime climaxes, blockbuster pop culture
+    "sports": 0.20,      # NBA buzzer beaters, UFC knockouts, crazy athletic highlights
+    "trends": 0.20,      # Real-time breakout internet news, viral debates & pop-culture moments
 }
 
-# Trend Discovery Queries by Topic Category (Focusing on completed streams & viral moments)
+# Diverse Streamer & Creator Roster for Zigzag Publishing Pattern
+CREATOR_ROSTER = [
+    "IShowSpeed",
+    "Kai Cenat",
+    "Jynxzi",
+    "Fanum",
+    "Sketch",
+    "xQc",
+    "Tfue",
+    "Pokimane",
+    "Shroud"
+]
+
+# Trend Discovery Queries by Topic Category (Rotated Dynamically)
 DISCOVERY_QUERIES = {
+    "gaming": [
+        "trending gaming stream funny moments US",
+        "IShowSpeed hilarious stream moments",
+        "Kai Cenat stream rage moments",
+        "Jynxzi best stream reactions clips",
+        "GTA 6 insane gameplay moments",
+        "crazy gaming clutch fail stream highlight",
+        "Sketch streamer funniest clips"
+    ],
     "cinema": [
         "trending official movie trailer climax 2026",
         "blockbuster movie epic action scene clip",
         "anime viral fight scene 4k clip",
         "trending marvel cinema scene soundtrack"
     ],
-    "gaming": [
-        "IShowSpeed GTA 6 funny stream reaction",
-        "Kai Cenat streamer rage hilarious moments",
-        "crazy gaming clutch fail stream highlight",
-        "GTA 6 insane streamer gameplay moments"
+    "sports": [
+        "NBA craziest buzzer beater highlights 2026",
+        "UFC viral knockout finish reaction",
+        "Premier League incredible goal of the week",
+        "insane athletic play sports highlights"
     ],
     "trends": [
-        "viral entertainment trend moments US",
-        "breakout pop culture internet moments 2026"
+        "real time viral internet trend moments US",
+        "breakout pop culture internet news 2026",
+        "funniest viral video of the week US"
     ]
 }
 
