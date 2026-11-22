@@ -78,14 +78,19 @@ If `data/client_secrets.json` is missing, launch the Antigravity `browser` subag
 
 ---
 
-### Step 3: Launch Studio Dashboard & Connect YouTube Channel
+### Step 3: Launch Studio Dashboard & Register Antigravity Automation
 1. Start the studio server as a background daemon:
    ```powershell
    python run_autopilot.py dashboard --port 8501
    ```
-2. Inform the user:
-   > "Studio dashboard is live at `http://127.0.0.1:8501`. Please click **[Connect Channel]** in the top navigation bar to authenticate your YouTube channel once. Antigravity will handle everything else autonomously."
-3. Once the user approves the channel, `data/youtube_token.json` is automatically saved.
+2. Automatically register this studio in Antigravity's native Automations dashboard:
+   ```powershell
+   python scripts/register_antigravity_automation.py
+   ```
+   *(Generates `~/.gemini/config/sidecars/money-glitch-autopilot/sidecar.json` so the automation is active in the Antigravity UI sidebar).*
+3. Inform the user:
+   > "Studio dashboard is live at `http://127.0.0.1:8501`, and the studio is registered in your Antigravity **Automations** tab. Please click **[Connect Channel]** in the top navigation bar to authenticate your YouTube channel once. Antigravity will handle everything else autonomously."
+4. Once the user approves the channel, `data/youtube_token.json` is automatically saved.
 
 ---
 
