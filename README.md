@@ -1,177 +1,200 @@
-# Viral Shorts Autopilot 🎬🚀
+<p align="center">
+  <img src="assets/hero-banner.svg" alt="Money Glitch Autonomous Studio — Powered by Google Antigravity" width="100%" />
+</p>
 
-Autonomous YouTube Shorts Clipping, Invideo Polish & Scheduled Publishing Studio built exclusively on **Google Antigravity**.
+<p align="center">
+  <img src="assets/money-glitch-logo.svg" width="90" alt="Money Glitch Logo" />
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://github.com/google-antigravity"><img src="assets/antigravity-logo.svg" width="90" alt="Google Antigravity Logo" /></a>
+</p>
 
-> ⚡ **Turnkey One-Prompt Automation with Google Antigravity:**  
-> Simply copy this repository link and paste it into Google Antigravity:  
-> ```text
-> https://github.com/SailikNanda/money-glitch.git
-> Use this
-> ```
-> **Antigravity will automatically:**
-> 1. Install all dependencies and initialize the database.
-> 2. Use browser control on Google Cloud Console to enable the YouTube Data API v3 and generate `data/client_secrets.json`.
-> 3. Launch the studio dashboard at `http://127.0.0.1:8501`.
-> 4. Prompt you once to click **[Connect Channel]** in the header.
-> 5. Take over the entire pipeline: trend research, dynamic climax detection, 100% video-specific copywriting (unique titles, descriptions, and dynamic hashtags), 60FPS vertical retention editing, and safe scheduled YouTube Shorts publishing!
+<h1 align="center">⚡ Money Glitch Autonomous Studio</h1>
 
-- **Focus**: GTA 6 (Grand Theft Auto VI) at 60% priority, Gaming & Streamers (25%), US Internet Trends (15%).
-- **Language & Region**: American English, targeting United States YouTube audience.
-- **Cadence**: Every 3 hours (`CRON_TZ=America/New_York 0 */3 * * *`).
-- **Pacing**: Up to 5–10 eligible candidate clips daily, ~3 published Shorts daily with a minimum 4-hour gap.
+<p align="center">
+  <b>The Turnkey 100% Autonomous YouTube Shorts Media House exclusively powered by Google Antigravity.</b><br>
+  <i>Universal 24-Category Real-Time Discovery • Anti-Monotony Creator Zigzag • 5-Day Freshness Ceiling • Retention Master Editing</i>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Powered%20By-Google%20Antigravity-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google Antigravity" />
+  <img src="https://img.shields.io/badge/Render-1080x1920%20%40%2060FPS-00FFA3?style=for-the-badge&logo=youtube&logoColor=black" alt="Render Specs" />
+  <img src="https://img.shields.io/badge/Autopilot-100%25%20Zero--Touch-8B5CF6?style=for-the-badge" alt="Zero Touch" />
+  <img src="https://img.shields.io/badge/Freshness-Strict%205--Day%20Limit-F43F5E?style=for-the-badge" alt="Freshness" />
+  <img src="https://img.shields.io/badge/License-MIT-38BDF8?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
+</p>
 
 ---
 
-## Architecture Overview
+## 🚀 One-Prompt Turnkey Quickstart
 
-```
-                      ┌────────────────────────────────────────┐
-                      │   Antigravity Scheduled Automation     │
-                      │  (Every 3 Hours - America/New_York)    │
-                      └──────────────────┬─────────────────────┘
-                                         │
-                                         ▼
-                      ┌────────────────────────────────────────┐
-                      │        YouTube Trend Discovery         │
-                      │ (GTA 6 60%, Gaming 25%, Viral US 15%)  │
-                      └──────────────────┬─────────────────────┘
-                                         │
-                                         ▼
-                      ┌────────────────────────────────────────┐
-                      │       Rights & Source Validation       │
-                      │ (CC-BY, Whitelist, Manual Verification)│
-                      └──────────────────┬─────────────────────┘
-                                         │
-                                         ▼
-                      ┌────────────────────────────────────────┐
-                      │  SupoClip Viral Moment & Gaming Layout │
-                      │  (Facecam Top, Gameplay, HUD Preserve) │
-                      │       1080x1920 9:16 60FPS MP4         │
-                      └──────────────────┬─────────────────────┘
-                                         │
-                                         ▼
-                      ┌────────────────────────────────────────┐
-                      │        Invideo Advanced Polish         │
-                      │ (Color Grading, Transitions, Audio)    │
-                      └──────────────────┬─────────────────────┘
-                                         │
-                                         ▼
-                      ┌────────────────────────────────────────┐
-                      │     Publishing Queue & Upload Guard    │
-                      │  (Pacing: 4h Gap, Max 3/Day, Safety)   │
-                      └──────────────────┬─────────────────────┘
-                                         │
-                                         ▼
-                      ┌────────────────────────────────────────┐
-                      │   Official YouTube Data API v3 Upload  │
-                      │    (OAuth 2.0, Hook Frame, Attribution)│
-                      └────────────────────────────────────────┘
+No complex manual setup. Simply copy this repository link and paste it into **Google Antigravity**:
+
+```text
+https://github.com/SailikNanda/money-glitch.git
+Use this
 ```
 
----
-
-## 1. Directory Structure
-
-- `src/`
-  - `config.py`: Core configuration, topic weights, quotas, and environment paths.
-  - `db.py`: SQLite persistence (`data/autopilot.db`) for candidates, clips, queue, and published history.
-  - `rights_validator.py`: Gatekeeper ensuring no media is republished without verified permissions.
-  - `trend_discovery.py`: High-velocity trend scanner across YouTube Data API v3 and public sources.
-  - `clipping_engine.py`: SupoClip-powered viral moment analysis and 9:16 gaming layout rendering.
-  - `invideo_enhancer.py`: Invideo CLI integration and video spec verification.
-  - `youtube_uploader.py`: Official Google OAuth 2.0 uploader with channel confirmation.
-  - `scheduler.py`: Autonomous orchestrator with America/New_York timezone pacing.
-  - `dashboard.py`: FastAPI real-time web control center.
-- `templates/dashboard.html`: Tailwind CSS responsive operator dashboard.
-- `clips/exports/`: Rendered 1080x1920 vertical Shorts.
-- `run_autopilot.py`: Master CLI entrypoint.
+### What Google Antigravity Does Automatically:
+1. **📦 Auto-Installs & Inits**: Clones the repo, installs Python requirements, checks FFmpeg, and initializes the SQLite database.
+2. **🌐 Autonomous Google Cloud Setup**: Takes browser control on Google Cloud Console to enable the `YouTube Data API v3` and downloads the Desktop OAuth client credentials directly to `data/client_secrets.json`.
+3. **🖥️ Launches Dashboard & Connects Channel**: Spawns the real-time studio dashboard on `http://127.0.0.1:8501` and prompts you once to link your YouTube channel via Google Sign-In.
+4. **⚙️ Registers in Antigravity Automations**: Automatically registers this studio as a permanent background sidecar in your Antigravity **Automations** tab (`~/.gemini/config/sidecars/money-glitch-autopilot/sidecar.json`).
+5. **🎬 24/7 Autonomous Production**: Researches real-time trends, applies creator zigzag rotation, generates unique titles/hashtags, performs 60FPS retention edits, and publishes to YouTube Shorts with a 4-hour spacing guard!
 
 ---
 
-## Quick Start & Installation 🚀
+## 🏗️ System Architecture
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/SailikNanda/money-glitch.git
-   cd money-glitch
-   ```
+```mermaid
+flowchart TD
+    subgraph Antigravity ["🧠 Google Antigravity Native Engine"]
+        A["Cadence Trigger (Every 3h / CRON_TZ)"] --> B["Trend Radar (24 Dynamic Categories)"]
+        B --> C["Strict 5-Day Freshness Filter (Max 120h)"]
+        C --> D["Anti-Monotony & Creator Zigzag Engine"]
+        D --> E["Dynamic Climax & Scream Detection"]
+        E --> F["100% Unique Copywriting Matrix"]
+    end
 
-2. **Install Python dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-   *(Ensure [FFmpeg](https://ffmpeg.org/download.html) is installed and added to your system PATH).*
+    subgraph Production ["🎬 High-Retention Production Engine"]
+        F --> G["Facecam & Gameplay 9:16 Vertical Slicer"]
+        G --> H["3.5s Pattern Interrupt Zooms + Camera Shakes"]
+        H --> I["Kinetic Subtitles (Neon Yellow Highlights)"]
+        I --> J["OLED Saturation Boost (eq=saturation=1.28)"]
+        J --> K["-40% Phonk Audio Ducking & Soundboard SFX"]
+    end
 
-3. **Configure Environment:**
-   Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-
-4. **Connect Your YouTube Channel:**
-   Place your Google OAuth `client_secrets.json` in the `data/` folder, then launch the studio:
-   ```bash
-   python run_autopilot.py dashboard --port 8501
-   ```
-   Open `http://localhost:8501` in your browser and click **Connect Channel**.
+    subgraph Publishing ["🚀 Safe YouTube Shorts Dispatcher"]
+        K --> L{"4-Hour Spacing & Max 3/Day Window?"}
+        L -- Open --> M["YouTube Data API v3 OAuth Upload"]
+        L -- Locked --> N["Staged in SQLite Queue (autopilot.db)"]
+        M --> O["Clean Up Temporary Video Vault (0.00 MB Fresh)"]
+    end
+```
 
 ---
 
-## 2. CLI Usage
+## 🌐 Universal 24-Category Real-Time Discovery
 
-```bash
-# 1. Start the Web Dashboard (Control Center)
+Rather than being locked to a single creator or topic, Money Glitch continuously discovers real-time breakout trends across **24 diverse verticals**:
+
+| Vertical | Categories & Themes | Typical Clips & Highlights |
+| :--- | :--- | :--- |
+| **🎮 Gaming (8)** | `Open World Chaos`<br>`FPS & Esports Clutches`<br>`Survival Sandbox Traps`<br>`Horror Jumpscare Screams`<br>`Physics Destruction`<br>`Gamer Rage & Karma`<br>`Souls Boss Fights`<br>`Breakout Indie Games` | GTA 6 leaks, Valorant 1v5 aces, Minecraft redstone traps, Lethal Company screams, BeamNG destruction, broken controllers, Elden Ring clutches. |
+| **🎬 Cinema (5)** | `Blockbuster Trailers`<br>`Cinematic Action & Chases`<br>`Viral Anime Fights`<br>`Mind-Bending Plot Twists`<br>`Soundtrack Visual Drops` | Official Hollywood teasers, movie car chase climaxes, 4K 60FPS anime battles, shocking movie endings, epic Hans Zimmer drops. |
+| **🏆 Sports (6)** | `NBA Buzzer Beaters`<br>`UFC & Boxing KOs`<br>`Soccer / Football Golazos`<br>`Extreme Red Bull Stunts`<br>`NFL Impossible Catches`<br>`Supercar & F1 Drifts` | 90th-minute game winners, walk-off counter knockouts, bicycle kicks, urban roof parkour, one-handed touchdown grabs, rally slides. |
+| **⚡ Viral (5)** | `1-in-a-Million Odds`<br>`Robotics & Tech Leaks`<br>`Clever & Heroic Animals`<br>`Satisfying ASMR Restorations`<br>`Public Street Trivia` | Unbelievable real-life coincidences, humanoid robot reveals, pet rescue feats, hydraulic press crushing, hilarious street questions. |
+
+---
+
+## 🔄 Anti-Monotony & Creator Zigzag Protocol
+
+YouTube audiences habituate quickly if a channel posts the same face or game repeatedly. Money Glitch enforces strict creator diversification:
+
+- **Open to Millions of Creators**: No hardcoded whitelist. Evaluates any YouTube creator whose clip demonstrates high view velocity and authentic entertainment value.
+- **Velocity + Exploration Jitter**: Famous and viral trending clips receive priority, while random exploration points (+0 to +15 pts) allow smaller breakout creators to be featured.
+- **Max 1 Video Per Channel Per Batch**: Prevents any single channel from dominating discovery results.
+- **Universal Zigzag Penalty**: Evaluates the last 5 published uploads. If a creator or category was featured recently, the engine applies a heavy penalty, guaranteeing an alternating sequence:
+  $$\text{Creator A (Gaming)} \longrightarrow \text{Blockbuster (Cinema)} \longrightarrow \text{Creator B (Gaming)} \longrightarrow \text{Buzzer Beater (Sports)} \longrightarrow \text{Creator C...}$$
+
+---
+
+## 🕒 Strict 5-Day Freshness Ceiling
+
+Outdated content from weeks or months ago is completely banned by code:
+- **`publishedAfter` Gate**: Hardcoded API query parameter `publishedAfter = (now - 5 days)`.
+- **120-Hour VPH Filter**: Every candidate's view velocity is evaluated per hour. Videos older than 120 hours (5 days) are automatically rejected.
+- **Temporal Search Tags**: All search queries dynamically inject `"this week"`, `"today"`, and `"latest"` qualifiers.
+
+---
+
+## 🎨 High-Retention Video Engineering
+
+Every short is mastered in vertical **1080x1920 @ 60 FPS** following viewer retention psychology:
+
+```
+┌──────────────────────────────────────────────┐
+│  TOP 15% (0-280px):   Streamer Facecam / POV │
+├──────────────────────────────────────────────┤
+│                                              │
+│  CENTER 60% (280-1450px): High-Octane Action │
+│   - 3.5s Pattern Interrupt Zooms (1.18x)     │
+│   - Voice Peak Camera Shakes                 │
+│                                              │
+├──────────────────────────────────────────────┤
+│  SUBTITLE ZONE: Kinetic .ASS Neon Yellow     │
+├──────────────────────────────────────────────┤
+│  BOTTOM 25% (1450-1920px): SAFE UI ZONE      │
+│  (YouTube Shorts overlay safe, unobstructed) │
+└──────────────────────────────────────────────┘
+```
+
+1. **3.5s Pattern Interrupt Cadence**: Alternates between 1.0x wide and 1.18x punch-in zooms to prevent visual habituation.
+2. **Kinetic `.ass` Typography**: Uppercase Impact font rendered in the YouTube safe zone with active spoken words highlighted in **Neon Yellow** (`#FACC15`).
+3. **Mobile OLED Vibrancy**: Boosts video saturation (`eq=saturation=1.28:contrast=1.06`) and edge sharpness for vibrant smartphone displays.
+4. **Smart Sidechain Audio Ducking**: Background phonk/hype music automatically ducks by **-40%** under streamer speech and swells during climactic gameplay drops.
+
+---
+
+## 🖥️ Studio Control Center (FastAPI Dashboard)
+
+Run the real-time glassmorphic control center locally:
+
+```powershell
 python run_autopilot.py dashboard --port 8501
+```
 
-# 2. Check System Status & Queue
-python run_autopilot.py status
+Access at **`http://127.0.0.1:8501`** to monitor:
+- **5 Autonomous Agent Cursors**: Scout, Clipper, Meme VFX, Brain, and Uploader.
+- **Multi-Track Live Timeline**: Track 1 through Track 5 real-time scrubbing.
+- **Storage Vault Health**: One-click wipe keeping disk space at **0.00 MB**.
+- **YouTube Auth Hub**: Direct one-click Google Sign-In and token refresh.
 
-# 3. Run Trend Discovery
-python run_autopilot.py discover --limit 3
+---
 
-# 4. Generate Shorts from a Source Video
-python run_autopilot.py clip --source "s:/Money Glitch/clips/raw_clip_3.webm" --id "gta6_rage" --topic "GTA 6"
+## 🔄 Reboot-Safe Continuous Lifecycle
 
-# 5. Execute One Autonomous Pipeline Iteration
-python run_autopilot.py cycle
+- **PC ON**: Runs continuously in the background (`python run_autopilot.py daemon`).
+- **PC OFF**: Shuts down cleanly with zero data corruption. All queue states, published analytics, and 4-hour spacing timers are persisted in SQLite (`data/autopilot.db`).
+- **PC BOOT**: Resumes automatically right where it left off.
+  *(Optional: Run `scripts\enable_startup.bat` to launch the studio silently on Windows startup).*
 
-# 6. Authenticate YouTube Channel (One-time Google OAuth)
-python run_autopilot.py auth-youtube
+---
+
+## 📜 Directory Structure
+
+```text
+├── .agents/
+│   └── skills/money-glitch-autopilot/   # Antigravity native workspace skill
+├── assets/
+│   ├── hero-banner.svg                  # Vector GitHub banner
+│   ├── money-glitch-logo.svg            # Money Glitch vector emblem
+│   └── antigravity-logo.svg             # Google Antigravity vector emblem
+├── data/
+│   ├── autopilot.db                     # SQLite database (pacing, queue, history)
+│   ├── client_secrets.json              # Google Cloud OAuth desktop credentials
+│   └── youtube_token.json               # YouTube OAuth token
+├── scripts/
+│   ├── register_antigravity_automation.py # Native Automations tab injector
+│   ├── setup_google_oauth.py            # OAuth credentials validator
+│   └── enable_startup.bat               # Windows boot auto-start installer
+├── src/
+│   ├── ai_generator.py                  # Antigravity Native Director & dynamic copywriting
+│   ├── clipping_engine.py               # 9:16 vertical stack & climax slicer
+│   ├── config.py                        # 24 categories, 5-day freshness window, quotas
+│   ├── dashboard.py                     # FastAPI real-time web server
+│   ├── retention_editor.py              # FFmpeg zooms, kinetic .ass, OLED saturation
+│   ├── scheduler.py                     # Universal creator zigzag & 4h spacing guard
+│   └── trend_discovery.py               # Real-time search & velocity evaluator
+├── templates/
+│   └── dashboard.html                   # Liquid glass control center UI
+├── AGENTS.md                            # Antigravity turnkey agent runbook
+├── requirements.txt                     # Python dependencies
+└── run_autopilot.py                     # Master CLI entrypoint
 ```
 
 ---
 
-## High-Retention AI Video Editing Suite ⚡
-
-The system features an autonomous retention psychology engine (`src/retention_editor.py` & `skills/viral-shorts-editor/`):
-- **Pattern Interrupt Micro-Zooms**: Alternates between 1.0x and 1.15x dynamic punch-ins every 3.5 seconds via FFmpeg mathematical zoom graphs to eliminate viewer drop-off.
-- **Mobile OLED Vibrancy Tuning**: Automatically boosts saturation (+25%) and micro-contrast for smartphone displays with subtle unsharp masking.
-- **Kinetic Typography (SubStation Alpha .ass)**: Word-level active highlighted subtitles positioned strictly in the YouTube Shorts safe zone (`MarginV=320px`).
-- **Smart Sidechain Audio Ducking**: Dips background phonk/music tracks by -40% (-6dB) under voice dialogue and restores volume during hype gameplay climaxes.
-- **Auto-Silence Jump Cuts**: Strips dead air longer than 350ms to sustain rapid-fire storytelling pacing.
-
----
-
-## 3. Web Dashboard
-
-Launch on `http://127.0.0.1:8501`:
-- **Live Status Bar**: Channel identity, daily upload pacing (e.g. `0 / 3 Shorts`), and total AI cost ($0.00).
-- **Controls**:
-  - `Run Discovery & Clipping`: Instant manual trigger.
-  - `Auto-Publish ON/OFF`: Safety toggle. Default is OFF until explicitly enabled.
-  - `Emergency Stop`: Immediate pipeline freeze.
-  - `Submit Authorized Source`: Direct video ingest for instant clipping.
-- **Candidate Rights Gate**: Authorize trending clips with 1 click.
-- **Published Shorts Table**: Direct links to published YouTube Shorts.
-
----
-
-## 4. Connecting Your YouTube Channel
-
-1. Place your Google Cloud OAuth Client credentials JSON file at:
-   `s:\Money Glitch\data\client_secrets.json`
-2. Run:
-   ```bash
-   python run_autopilot.py auth-youtube
-   ```
-3. A local browser tab will open for official Google consent. The token is safely saved in `data/youtube_token.json` (no passwords stored).
+<p align="center">
+  <b>Built exclusively for Google Antigravity.</b><br>
+  Released under the MIT License • Contributions & PRs Welcome!
+</p>
