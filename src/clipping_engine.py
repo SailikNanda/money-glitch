@@ -75,7 +75,9 @@ class ClippingEngine:
                         "outtmpl": str(downloads_dir / f"{source_video_id}.%(ext)s"),
                         "quiet": True,
                         "max_filesize": 80 * 1024 * 1024,
-                        "socket_timeout": 15
+                        "socket_timeout": 20,
+                        "extractor_args": {"youtube": {"player_client": ["android", "web"]}},
+                        "nocheckcertificate": True
                     }
                     try:
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -95,7 +97,7 @@ class ClippingEngine:
         logger.info(f"Analyzing source media for viral moments: {source_file.name}")
 
         # 1. Moment analysis & peak detection
-        moments = self._detect_viral_moments(str(source_file), target_duration=32.0)
+        moments = self._detect_viral_moments(str(source_file), target_duration=32.0, topic=topic)
         generated_clips = []
 
         for idx, moment in enumerate(moments):
@@ -166,7 +168,7 @@ class ClippingEngine:
 
         return generated_clips
 
-    def _detect_viral_moments(self, video_path: str, target_duration: float = 30.0) -> List[Dict[str, Any]]:
+    def _detect_viral_moments(self, video_path: str, target_duration: float = 30.0, topic: str = "GTA 6") -> List[Dict[str, Any]]:
         """
         Scans video audio/visual dynamics to find the strongest candidate moments.
         Evaluates hook energy, visual motion spikes, and narrative completeness.
@@ -252,17 +254,45 @@ class ClippingEngine:
             return {"is_gaming": False, "mode": "already_vertical"}
 
         # Proportional dynamic crops based on source video resolution
-        cam_w = min(int(width * 0.25), width)
-        cam_h = min(int(height * 0.30), height)
-        cam_x = 0
-        cam_y = min(int(height * 0.42), max(0, height - cam_h))
+        # Check if there is an actual face in the corners (streamer facecam)
+        has_facecam = False
+        cam_crop_rect = (0, 0, int(width * 0.25), int(height * 0.30))
+        try:
+            face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            # Look in the top left, top right, and middle left areas
+            faces = face_cascade.detectMultiScale(gray, scaleFactor=1.15, minNeighbors=4, minSize=(40, 40))
+            for (fx, fy, fw, fh) in faces:
+                # If face is in the top-left or top-right quadrant
+                if (fx < width * 0.35 or fx > width * 0.65) or fy < height * 0.45:
+                    has_facecam = True
+                    # Pad the face region to form a nice webcam box
+                    pad_w = int(fw * 1.5)
+                    pad_h = int(fh * 1.5)
+                    cx = max(0, fx - int(fw * 0.25))
+                    cy = max(0, fy - int(fh * 0.25))
+                    cw = min(width - cx, pad_w)
+                    ch = min(height - cy, pad_h)
+                    cam_crop_rect = (cx, cy, cw, ch)
+                    break
+        except Exception as e:
+            logger.debug(f"Facecam detection check: {e}")
 
-        # Central gameplay square crop
+        # Only treat as facecam if a real face was detected
+        if not has_facecam:
+            # Full cinematic / sports / pure gameplay layout (no awkward split)
+            return {
+                "is_gaming": False,
+                "mode": "cinematic_vertical",
+                "has_facecam": False
+            }
+
+        cam_x, cam_y, cam_w, cam_h = cam_crop_rect
         game_dim = min(int(height * 0.95), width, height)
         game_x = max(0, int((width - game_dim) / 2))
         game_y = max(0, int((height - game_dim) / 2))
 
-        # If 1440p (like raw_clip_3: 2560x1440), preserve the exact calibrated streamer box
+        # If 1440p calibrated streamer box
         if width == 2560 and height == 1440:
             facecam_crop_str = "crop=520:340:0:610"
             gameplay_crop_str = "crop=1300:1300:700:100"
@@ -273,6 +303,7 @@ class ClippingEngine:
         return {
             "is_gaming": True,
             "mode": "split_facecam_gameplay",
+            "has_facecam": True,
             "cam_h": 680,
             "game_h": 1100,
             "facecam_crop": facecam_crop_str,
@@ -310,8 +341,23 @@ class ClippingEngine:
             if cand.exists():
                 sfx_path = cand
 
-        # Clean hook title for safe FFmpeg drawtext evaluation
+        # Clean hook title for safe FFmpeg drawtext evaluation (strip emojis to prevent box rendering)
+        import re
         safe_hook = hook_title.replace("'", "’").replace(":", " - ").replace('"', '').replace("\\", "")
+        safe_hook = re.sub(r'[^\w\s\-\.,!?\'’/]', '', safe_hook).strip()
+
+        # Split title into 1 or 2 lines cleanly so text never overflows 1080px width
+        words = safe_hook.split()
+        if len(safe_hook) > 22 and len(words) > 1:
+            mid = len(words) // 2
+            line1 = " ".join(words[:mid])
+            line2 = " ".join(words[mid:])
+            title_filter = (
+                f"drawtext=fontfile='{self.font_impact}':text='{line1}':fontsize=50:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=20,"
+                f"drawtext=fontfile='{self.font_impact}':text='{line2}':fontsize=50:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=80"
+            )
+        else:
+            title_filter = f"drawtext=fontfile='{self.font_impact}':text='{safe_hook}':fontsize=52:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=35"
 
         # Build filter complex based on layout
         if layout_plan.get("is_gaming"):
@@ -340,26 +386,33 @@ class ClippingEngine:
                 "[v_cam][game]overlay=0:800[v_comp];"
 
                 # 5. Hook title at the top + divider badge
-                f"[v_comp]drawtext=fontfile='{self.font_impact}':text='{safe_hook}':fontsize=60:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=12,"
+                f"[v_comp]{title_filter},"
                 "drawbox=y=775:color=yellow@0.9:width=iw:height=8:t=fill,"
                 "drawbox=y=764:color=black@0.75:width=iw:height=30:t=fill,"
-                f"drawtext=fontfile='{self.font_impact}':text='[ VIRAL SHORTS AUTOPILOT ]':fontsize=32:fontcolor=white:borderw=3:bordercolor=black:x=(w-text_w)/2:y=766,"
+                f"drawtext=fontfile='{self.font_impact}':text='[ MONEY GLITCH STUDIO ]':fontsize=32:fontcolor=white:borderw=3:bordercolor=black:x=(w-text_w)/2:y=766,"
 
                 # 6. Viral subtitle footer
-                f"drawtext=fontfile='{self.font_impact}':text='WAIT FOR THE REACTION...':fontsize=54:fontcolor=white:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1760:enable='between(t,0,12)',"
-                f"drawtext=fontfile='{self.font_impact}':text='THIS CANNOT BE REAL!':fontsize=56:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1760:enable='gt(t,12)'[vout]"
+                f"drawtext=fontfile='{self.font_impact}':text='WAIT FOR THE REACTION...':fontsize=52:fontcolor=white:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1760:enable='between(t,0,12)',"
+                f"drawtext=fontfile='{self.font_impact}':text='THIS CANNOT BE REAL!':fontsize=54:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1760:enable='gt(t,12)'[vout]"
             )
         else:
-            # Clean central 9:16 crop with background blur
+            # High-Impact 9:16 Cinematic / Sports / Action Layout
             filter_complex = (
                 "[0:v]setpts=PTS-STARTPTS,"
                 "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
-                "eq=saturation=1.45:contrast=1.15,boxblur=20:4[bg];"
+                "eq=saturation=1.45:contrast=1.15,boxblur=25:5[bg];"
                 "[0:v]setpts=PTS-STARTPTS,"
-                "scale=1080:-1,crop=1080:1920:(iw-1080)/2:(ih-1920)/2,"
-                "eq=saturation=1.40:contrast=1.15[main];"
-                "[bg][main]overlay=(W-w)/2:(H-h)/2[v_comp];"
-                f"[v_comp]drawtext=fontfile='{self.font_impact}':text='{safe_hook}':fontsize=60:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=40[vout]"
+                "scale=1080:-1,"
+                "eq=saturation=1.35:contrast=1.12:brightness=0.01,"
+                "unsharp=5:5:0.9:5:5:0.4[fg];"
+                "[bg][fg]overlay=0:(H-h)/2[v_comp];"
+                f"[v_comp]{title_filter},"
+                "drawbox=y=640:color=yellow@0.9:width=iw:height=6:t=fill,"
+                "drawbox=y=1270:color=yellow@0.9:width=iw:height=6:t=fill,"
+                "drawbox=y=1280:color=black@0.75:width=iw:height=32:t=fill,"
+                f"drawtext=fontfile='{self.font_impact}':text='[ MONEY GLITCH VIRAL CLIMAX ]':fontsize=30:fontcolor=white:borderw=3:bordercolor=black:x=(w-text_w)/2:y=1284,"
+                f"drawtext=fontfile='{self.font_impact}':text='WAIT FOR THE DROP...':fontsize=52:fontcolor=white:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1740:enable='between(t,0,12)',"
+                f"drawtext=fontfile='{self.font_impact}':text='MIND BLOWN! 💀':fontsize=54:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1740:enable='gt(t,12)'[vout]"
             )
 
         cmd = [

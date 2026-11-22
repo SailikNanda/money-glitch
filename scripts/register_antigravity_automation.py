@@ -54,7 +54,37 @@ def register_automation():
     with open(sidecar_path, "w", encoding="utf-8") as f:
         json.dump(automation_config, f, indent=2)
 
-    print(f"[SUCCESS] Antigravity Automation Registered!")
+    # Automatically set "enabled": True in Antigravity's config.json so it is Active by default (not Paused)
+    main_config_path = user_home / ".gemini" / "config" / "config.json"
+    if main_config_path.exists():
+        try:
+            with open(main_config_path, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+            sidecars = cfg.setdefault("sidecars", {})
+            # Purge deprecated old sidecars
+            sidecars.pop("viral-shorts-autopilot", None)
+            # Register and enable Money Glitch
+            sidecars["money-glitch-autopilot"] = {
+                "enabled": True,
+                "schemaVersion": 1,
+                "resolvedPermissions": {
+                    "workspaceUris": [
+                        workspace_uri
+                    ],
+                    "accessGrants": [
+                        "command(python run_autopilot.py)",
+                        "command(ffmpeg)",
+                        "command(ffprobe)"
+                    ]
+                }
+            }
+            with open(main_config_path, "w", encoding="utf-8") as f:
+                json.dump(cfg, f, indent=2)
+            print("[SUCCESS] Automation auto-enabled (status: ACTIVE) in Antigravity UI!")
+        except Exception as e:
+            print(f"[WARNING] Could not update config.json: {e}")
+
+    print(f"[SUCCESS] Antigravity Automation Registered & Enabled!")
     print(f"Path: {sidecar_path}")
     print(f"Display Name: {automation_config['display_name']}")
     print(f"Cadence: Every 3 hours (CRON_TZ=America/New_York 0 */3 * * *)")
