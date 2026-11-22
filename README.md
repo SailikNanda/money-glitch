@@ -99,6 +99,17 @@ python run_autopilot.py auth-youtube
 
 ---
 
+## High-Retention AI Video Editing Suite ⚡
+
+The system features an autonomous retention psychology engine (`src/retention_editor.py` & `skills/viral-shorts-editor/`):
+- **Pattern Interrupt Micro-Zooms**: Alternates between 1.0x and 1.15x dynamic punch-ins every 3.5 seconds via FFmpeg mathematical zoom graphs to eliminate viewer drop-off.
+- **Mobile OLED Vibrancy Tuning**: Automatically boosts saturation (+25%) and micro-contrast for smartphone displays with subtle unsharp masking.
+- **Kinetic Typography (SubStation Alpha .ass)**: Word-level active highlighted subtitles positioned strictly in the YouTube Shorts safe zone (`MarginV=320px`).
+- **Smart Sidechain Audio Ducking**: Dips background phonk/music tracks by -40% (-6dB) under voice dialogue and restores volume during hype gameplay climaxes.
+- **Auto-Silence Jump Cuts**: Strips dead air longer than 350ms to sustain rapid-fire storytelling pacing.
+
+---
+
 ## 3. Web Dashboard
 
 Launch on `http://127.0.0.1:8501`:
