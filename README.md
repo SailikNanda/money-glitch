@@ -1,12 +1,12 @@
 <div align="center">
 
-<img src="assets/animated-studio-banner.svg" alt="Animated Money Glitch studio banner" width="100%" />
+<img src="assets/file_00000000e82882119d1db235cbdc9dcb.png" alt="Animated Money Glitch studio banner" width="100%" />
 
 <br/><br/>
 
-<img src="assets/money-glitch-logo.svg" alt="Money Glitch" width="104" />
+<img src="assets/file_0000000032188211934b19a8b67a33f2.png" alt="Money Glitch" width="104" />
 &nbsp;&nbsp;&nbsp;&nbsp;
-<img src="assets/antigravity-logo.svg" alt="Google Antigravity" width="104" />
+<img src="assets/file_000000008f4482119d3916a655a8bfe1.png" alt="Google Antigravity" width="104" />
 
 <br/><br/>
 
@@ -327,9 +327,9 @@ Only publish footage you own, have permission to reuse, or are otherwise legally
 
 <div align="center">
 
-<img src="assets/money-glitch-logo.svg" alt="Money Glitch" width="76" />
+<img src="assets/file_0000000032188211934b19a8b67a33f2.png" alt="Money Glitch" width="76" />
 &nbsp;&nbsp;&nbsp;&nbsp;
-<img src="assets/antigravity-logo.svg" alt="Google Antigravity" width="76" />
+<img src="assets/file_000000008f4482119d3916a655a8bfe1.png" alt="Google Antigravity" width="76" />
 
 ### MADE FOR THE NEXT GENERATION OF SHORT-FORM CREATORS
 
