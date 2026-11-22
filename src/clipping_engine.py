@@ -130,7 +130,8 @@ class ClippingEngine:
                 duration=duration_s,
                 layout_plan=layout_plan,
                 hook_title=hook_text,
-                meme_cue=meme_cue
+                meme_cue=meme_cue,
+                topic=topic
             )
 
             if success and out_path.exists():
@@ -318,15 +319,35 @@ class ClippingEngine:
         duration: float,
         layout_plan: Dict[str, Any],
         hook_title: str,
-        meme_cue: str = "vine_boom"
+        meme_cue: str = "vine_boom",
+        topic: str = "gaming"
     ) -> bool:
         """
         Renders the final 1080x1920 MP4 using FFmpeg with high color vibrancy,
         sharpness, hook header, meme SFX audio, and synchronized subtitles.
         """
+        # Determine genre classification for intelligent director
+        topic_lower = (topic or "").lower()
+        is_comedy_or_meme = any(k in topic_lower for k in ["rage", "fail", "glitch", "funny", "meme", "speed", "kai", "jynxzi", "trivia", "chaos"])
+        is_cinema = any(k in topic_lower for k in ["cinema", "movie", "trailer", "soundtrack", "film", "anime"])
+        is_sports = any(k in topic_lower for k in ["sport", "ufc", "boxing", "nba", "football", "goal", "clutch", "drift"])
+
+        # Determine meme video overlay (Keyed transparent reaction) for comedy/meme/rage genres
+        meme_video_path = None
+        if is_comedy_or_meme and not is_cinema:
+            cand_rock = ASSETS_DIR / "rock_meme.mkv"
+            cand_emo = ASSETS_DIR / "emotional_damage.mkv"
+            cand_walter = ASSETS_DIR / "walter_white.mkv"
+            if "rage" in topic_lower and cand_rock.exists():
+                meme_video_path = cand_rock
+            elif "fail" in topic_lower and cand_emo.exists():
+                meme_video_path = cand_emo
+            elif cand_rock.exists():
+                meme_video_path = cand_rock
+
         # Determine sound effect file (Disabled for cinema/clean edits)
         sfx_path = None
-        if meme_cue in ("none", "cinematic", "clean"):
+        if is_cinema:
             sfx_path = None
         elif meme_cue == "wasted":
             cand = ASSETS_DIR / "wasted.mp3"
@@ -336,7 +357,7 @@ class ClippingEngine:
             cand = ASSETS_DIR / "emotional_damage_3s.mp3"
             if cand.exists():
                 sfx_path = cand
-        elif meme_cue == "vine_boom":
+        elif is_comedy_or_meme or meme_cue == "vine_boom":
             cand = ASSETS_DIR / "vine_boom.mp3"
             if cand.exists():
                 sfx_path = cand
@@ -358,6 +379,9 @@ class ClippingEngine:
             )
         else:
             title_filter = f"drawtext=fontfile='{self.font_impact}':text='{safe_hook}':fontsize=52:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=35"
+
+        # Calculate climax moment for dynamic meme reaction overlay (around 55% mark)
+        climax_t = round(duration * 0.55, 1)
 
         # Build filter complex based on layout
         if layout_plan.get("is_gaming"):
@@ -385,18 +409,18 @@ class ClippingEngine:
                 "[bg][cam]overlay=0:60[v_cam];"
                 "[v_cam][game]overlay=0:800[v_comp];"
 
-                # 5. Hook title at the top + divider badge
+                # 5. Hook title at the top + sleek border lines (no intrusive text watermark)
                 f"[v_comp]{title_filter},"
-                "drawbox=y=775:color=yellow@0.9:width=iw:height=8:t=fill,"
-                "drawbox=y=764:color=black@0.75:width=iw:height=30:t=fill,"
-                f"drawtext=fontfile='{self.font_impact}':text='[ MONEY GLITCH STUDIO ]':fontsize=32:fontcolor=white:borderw=3:bordercolor=black:x=(w-text_w)/2:y=766,"
+                "drawbox=y=775:color=yellow@0.9:width=iw:height=6:t=fill,"
 
-                # 6. Viral subtitle footer
-                f"drawtext=fontfile='{self.font_impact}':text='WAIT FOR THE REACTION...':fontsize=52:fontcolor=white:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1760:enable='between(t,0,12)',"
-                f"drawtext=fontfile='{self.font_impact}':text='THIS CANNOT BE REAL!':fontsize=54:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1760:enable='gt(t,12)'[vout]"
+                # 6. Viral subtitle footer in safe zone
+                f"drawtext=fontfile='{self.font_impact}':text='WAIT FOR THE REACTION...':fontsize=52:fontcolor=white:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1760:enable='between(t,0,{int(climax_t)})',"
+                f"drawtext=fontfile='{self.font_impact}':text='THIS CANNOT BE REAL!':fontsize=54:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1760:enable='gt(t,{int(climax_t)})'[v_base]"
             )
         else:
             # High-Impact 9:16 Cinematic / Sports / Action Layout
+            subtitle_wait = "WAIT FOR THE DROP..." if is_cinema else ("THE IMPOSSIBLE FINISH..." if is_sports else "WAIT FOR IT...")
+            subtitle_climax = "ABSOLUTE CINEMA!" if is_cinema else ("UNBELIEVABLE PLAY!" if is_sports else "MIND BLOWN!")
             filter_complex = (
                 "[0:v]setpts=PTS-STARTPTS,"
                 "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
@@ -409,10 +433,8 @@ class ClippingEngine:
                 f"[v_comp]{title_filter},"
                 "drawbox=y=640:color=yellow@0.9:width=iw:height=6:t=fill,"
                 "drawbox=y=1270:color=yellow@0.9:width=iw:height=6:t=fill,"
-                "drawbox=y=1280:color=black@0.75:width=iw:height=32:t=fill,"
-                f"drawtext=fontfile='{self.font_impact}':text='[ MONEY GLITCH VIRAL CLIMAX ]':fontsize=30:fontcolor=white:borderw=3:bordercolor=black:x=(w-text_w)/2:y=1284,"
-                f"drawtext=fontfile='{self.font_impact}':text='WAIT FOR THE DROP...':fontsize=52:fontcolor=white:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1740:enable='between(t,0,12)',"
-                f"drawtext=fontfile='{self.font_impact}':text='MIND BLOWN! 💀':fontsize=54:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1740:enable='gt(t,12)'[vout]"
+                f"drawtext=fontfile='{self.font_impact}':text='{subtitle_wait}':fontsize=52:fontcolor=white:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1740:enable='between(t,0,{int(climax_t)})',"
+                f"drawtext=fontfile='{self.font_impact}':text='{subtitle_climax}':fontsize=54:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1740:enable='gt(t,{int(climax_t)})'[v_base]"
             )
 
         cmd = [
@@ -422,10 +444,27 @@ class ClippingEngine:
             "-i", source_path
         ]
 
-        if sfx_path:
+        next_input_idx = 1
+
+        # Check for meme video overlay input
+        if meme_video_path and is_comedy_or_meme:
+            cmd.extend(["-ss", "0.5", "-t", "2.2", "-i", str(meme_video_path)])
+            meme_idx = next_input_idx
+            next_input_idx += 1
+            filter_complex += (
+                f";[{meme_idx}:v]colorkey=0x00FF00:0.35:0.15,scale=520:-1[meme_fg];"
+                f"[v_base][meme_fg]overlay=(W-w)/2:(H-h)/2:enable='between(t,{climax_t},{climax_t + 2.2})'[vout]"
+            )
+        else:
+            filter_complex += ";[v_base]null[vout]"
+
+        # Check for audio SFX
+        if sfx_path and not is_cinema:
             cmd.extend(["-i", str(sfx_path)])
-            delay_ms = int(min(2500, duration * 400))
-            filter_complex += f";[0:a]aformat=sample_rates=48000:channel_layouts=stereo[a0];[1:a]aformat=sample_rates=48000:channel_layouts=stereo,adelay={delay_ms}|{delay_ms},volume=1.8[sfx];[a0][sfx]amix=inputs=2:duration=first:dropout_transition=2,aformat=sample_rates=48000:channel_layouts=stereo[aout]"
+            sfx_idx = next_input_idx
+            next_input_idx += 1
+            delay_ms = int(climax_t * 1000)
+            filter_complex += f";[0:a]aformat=sample_rates=48000:channel_layouts=stereo[a0];[{sfx_idx}:a]aformat=sample_rates=48000:channel_layouts=stereo,adelay={delay_ms}|{delay_ms},volume=1.8[sfx];[a0][sfx]amix=inputs=2:duration=first:dropout_transition=2,aformat=sample_rates=48000:channel_layouts=stereo[aout]"
             audio_maps = ["-map", "[aout]"]
         else:
             audio_maps = ["-map", "0:a?"]
