@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/hero-banner.svg" alt="Money Glitch — AI-powered YouTube Shorts automation studio" width="100%" />
+<img src="assets/animated-studio-banner.svg" alt="Animated Money Glitch studio banner" width="100%" />
 
 <br/><br/>
 
@@ -11,9 +11,9 @@
 <br/><br/>
 
 # MONEY GLITCH
-### THE AUTONOMOUS SHORTS STUDIO
+### 🌈 THE AUTONOMOUS SHORTS STUDIO
 
-**Find the moment. Shape the story. Ship the Short.**
+**🔎 FIND THE MOMENT &nbsp; ✂️ SHAPE THE STORY &nbsp; 🚀 SHIP THE SHORT**
 
 A creator-first, Antigravity-powered production pipeline that discovers emerging videos, identifies high-impact moments, edits vertical clips and orchestrates YouTube publishing.
 
@@ -34,7 +34,7 @@ A creator-first, Antigravity-powered production pipeline that discovers emerging
 
 <div align="center">
 
-## ONE WORKSPACE. THE ENTIRE SHORT-FORM WORKFLOW.
+## ✨ ONE WORKSPACE. THE ENTIRE SHORT-FORM WORKFLOW.
 
 *From the first spark of a trend to the final scheduled upload.*
 
@@ -72,7 +72,7 @@ Connect YouTube via OAuth, manage a persistent queue and apply spacing and daily
 
 ---
 
-## ✦ The creative engine
+## 🎨 The creative engine
 
 ### 🔭 Trend radar — built for variety
 
@@ -134,7 +134,7 @@ Money Glitch is designed to look beyond a single creator or genre. Its discovery
 
 ---
 
-## ◈ How it works
+## ⚡ How it works
 
 <div align="center">
 
@@ -217,7 +217,7 @@ python run_autopilot.py dashboard --port 8501
 
 ---
 
-## 🖥 Your studio control room
+## 🖥️ Your studio control room
 
 A local FastAPI dashboard provides a central view of the production workflow.
 
