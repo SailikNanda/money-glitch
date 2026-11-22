@@ -53,12 +53,15 @@ Verify `ffmpeg` is available on the system PATH.
 ---
 
 ### Step 2: Browser Autonomous Google Cloud & OAuth Credential Setup
-If `data/client_secrets.json` is missing, launch the Antigravity `browser` subagent to configure credentials using the user's active Google browser session:
+> **[CRITICAL ZERO-TOUCH PROTOCOL: NEVER ASK THE USER FOR CREDENTIALS]**
+> Under NO circumstances should the agent ask the user for Client ID, Client Secret, or JSON files.
+> If `data/client_secrets.json` is missing:
+> - Do NOT ask the user. You MUST immediately invoke the `browser` subagent to configure Google Cloud on the user's logged-in browser session:
+> - Execute the 5-step automated setup: Create Project -> Enable YouTube Data API v3 -> Configure Consent -> Create Desktop OAuth Client -> Save to `data/client_secrets.json`.
 
 1. **Create or Open Google Cloud Project**:
    - Navigate to: `https://console.cloud.google.com/projectcreate`
-   - Project Name: `Money Glitch Studio`.
-   - Click **Create**.
+   - **Smart Conflict Handling**: If `Money Glitch Studio` already exists in the project dropdown, select it directly. If creating a new project and the name conflicts, append a random 4-digit number (e.g., `Money Glitch Studio 5821`). Click **Create**.
 2. **Enable YouTube Data API v3**:
    - Navigate to: `https://console.cloud.google.com/apis/library/youtube.googleapis.com`
    - Click **Enable**.
@@ -79,17 +82,18 @@ If `data/client_secrets.json` is missing, launch the Antigravity `browser` subag
 ---
 
 ### Step 3: Launch Studio Dashboard & Register Antigravity Automation
-1. Start the studio server as a background daemon:
+1. Start the studio server as a background daemon and auto-open the dashboard UI:
    ```powershell
-   python run_autopilot.py dashboard --port 8501
+   python run_autopilot.py dashboard --port 8501 --open
    ```
+   *(Launches FastAPI and automatically opens `http://127.0.0.1:8501` in the user's web browser so they immediately view the live neon Studio UI).*
 2. Automatically register this studio in Antigravity's native Automations dashboard:
    ```powershell
    python scripts/register_antigravity_automation.py
    ```
-   *(Generates `~/.gemini/config/sidecars/money-glitch-autopilot/sidecar.json` so the automation is active in the Antigravity UI sidebar).*
+   *(Generates `~/.gemini/config/sidecars/money-glitch-autopilot/sidecar.json` so the automation is active in the Antigravity UI sidebar under 'Automations').*
 3. Inform the user:
-   > "Studio dashboard is live at `http://127.0.0.1:8501`, and the studio is registered in your Antigravity **Automations** tab. Please click **[Connect Channel]** in the top navigation bar to authenticate your YouTube channel once. Antigravity will handle everything else autonomously."
+   > "Studio dashboard is live at `http://127.0.0.1:8501` (opened in your browser) and registered in your Antigravity **Automations** tab. Please click **[Connect Channel]** in the top navigation bar to authenticate your YouTube channel once. Antigravity will handle everything else autonomously."
 4. Once the user approves the channel, `data/youtube_token.json` is automatically saved.
 
 ---

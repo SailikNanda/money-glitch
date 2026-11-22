@@ -63,7 +63,10 @@ Verify that `ffmpeg` and `ffprobe` are available on PATH.
 
 1. **Navigate to Google Cloud Console**:
    - URL: `https://console.cloud.google.com/projectcreate`
-   - If prompted, create project name: `Money Glitch Studio`. Click **Create**.
+   - **Smart Project Conflict Handling**:
+     - Check if `Money Glitch Studio` already exists: in the top project selector dropdown, if `Money Glitch Studio` already exists, click and select it directly!
+     - If creating a new project and `Money Glitch Studio` is already taken or conflicts, automatically append a random 4-digit number (e.g. `Money Glitch Studio 8421`, `Money Glitch Studio 3904`).
+     - Click **Create** (or use the selected project).
 2. **Enable YouTube Data API v3**:
    - URL: `https://console.cloud.google.com/apis/library/youtube.googleapis.com`
    - Click the blue **ENABLE** button.
