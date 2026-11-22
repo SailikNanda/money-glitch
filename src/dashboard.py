@@ -374,24 +374,17 @@ async def handle_action(req: ActionRequest, background_tasks: BackgroundTasks):
         if not YOUTUBE_CLIENT_SECRETS_PATH.exists():
             return {"success": False, "message": "data/client_secrets.json not found. Please place OAuth client credentials in data/ folder."}
 
-        def _launch_browser_oauth():
-            try:
-                log_event("SYSTEM", "Opening browser window for Google Account & Channel authorization...")
-                ok = uploader.authenticate_interactive()
-                if ok:
-                    info = uploader.get_channel_info()
-                    title = info.get("channel_title") if info else "Authorized Channel"
-                    log_event("SYSTEM", f"Channel authorization completed: {title}")
-                else:
-                    log_event("SYSTEM", "YouTube authentication cancelled or failed.")
-            except Exception as e:
-                log_event("SYSTEM", f"OAuth flow error: {str(e)}")
-
-        background_tasks.add_task(_launch_browser_oauth)
-        return {
-            "success": True, 
-            "message": "Opening browser for Google Login! Please select your YouTube channel and click Allow."
-        }
+        try:
+            auth_url = uploader.start_oauth_flow()
+            log_event("SYSTEM", "Google OAuth sign-in URL generated. Awaiting channel authorization...")
+            return {
+                "success": True, 
+                "auth_url": auth_url,
+                "message": "Click 'Open Google Sign-In Tab' to choose your YouTube account."
+            }
+        except Exception as e:
+            logger.error(f"Failed to initialize OAuth flow: {e}")
+            return {"success": False, "message": f"Failed to start OAuth flow: {str(e)}"}
 
     elif action == "toggle_autopublish":
         current = get_setting("auto_publish_enabled", True)

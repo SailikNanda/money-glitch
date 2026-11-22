@@ -11,10 +11,17 @@ Features:
 import os
 import json
 import logging
+import threading
+import wsgiref.simple_server
 from pathlib import Path
 from typing import Dict, Any, Optional
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google_auth_oauthlib.flow import (
+    InstalledAppFlow,
+    _RedirectWSGIApp,
+    _ExclusiveWSGIServer,
+    _WSGIRequestHandler
+)
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
@@ -66,6 +73,64 @@ class YouTubeUploader:
 
     def is_connected(self) -> bool:
         return self.credentials is not None and self.credentials.valid
+
+    def start_oauth_flow(self, preferred_port: int = 8085) -> str:
+        """
+        Starts a local HTTP redirect listener and returns the Google OAuth authorization URL.
+        Spawns a non-blocking background thread that handles the redirect callback, exchanges token,
+        and connects the YouTube channel.
+        """
+        if not YOUTUBE_CLIENT_SECRETS_PATH.exists():
+            raise FileNotFoundError(f"Missing OAuth client secrets at: {YOUTUBE_CLIENT_SECRETS_PATH}")
+
+        flow = InstalledAppFlow.from_client_secrets_file(str(YOUTUBE_CLIENT_SECRETS_PATH), SCOPES)
+        wsgi_app = _RedirectWSGIApp("YouTube Channel Connected Successfully! You can now close this tab and return to Money Glitch.")
+
+        # Find an available port, avoiding 8080 (which is used by Java/system processes)
+        server = None
+        for p in [preferred_port, 8089, 8090, 8095, 0]:
+            try:
+                server = wsgiref.simple_server.make_server(
+                    "localhost", p, wsgi_app,
+                    server_class=_ExclusiveWSGIServer,
+                    handler_class=_WSGIRequestHandler
+                )
+                break
+            except Exception as e:
+                logger.debug(f"Port {p} not available: {e}")
+                continue
+
+        if not server:
+            raise RuntimeError("Failed to bind local OAuth redirect server.")
+
+        actual_port = server.server_port
+        flow.redirect_uri = f"http://localhost:{actual_port}/"
+        auth_url, _ = flow.authorization_url(prompt='consent', access_type='offline')
+
+        def _worker():
+            try:
+                logger.info(f"OAuth redirect server listening on http://localhost:{actual_port}/")
+                server.timeout = 300  # 5 minutes timeout
+                server.handle_request()
+                auth_resp = wsgi_app.last_request_uri.replace("http", "https")
+                flow.fetch_token(authorization_response=auth_resp)
+                creds = flow.credentials
+                with open(YOUTUBE_TOKEN_PATH, "w", encoding="utf-8") as f:
+                    f.write(creds.to_json())
+                self.credentials = creds
+                self.youtube = build("youtube", "v3", credentials=creds)
+                logger.info("Successfully completed YouTube OAuth flow and updated credentials.")
+            except Exception as ex:
+                logger.error(f"Error handling OAuth callback: {ex}")
+            finally:
+                try:
+                    server.server_close()
+                except Exception:
+                    pass
+
+        t = threading.Thread(target=_worker, daemon=True)
+        t.start()
+        return auth_url
 
     def authenticate_interactive(self) -> bool:
         """

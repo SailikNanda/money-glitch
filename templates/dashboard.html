@@ -214,6 +214,7 @@
       const [showRadarModal, setShowRadarModal] = useState(false);
       const [actionLoading, setActionLoading] = useState(false);
       const [toastMsg, setToastMsg] = useState(null);
+      const [authModalUrl, setAuthModalUrl] = useState(null);
       const [activeTab, setActiveTab] = useState('published');
 
       // Custom Prompt State (Intelligent Dynamic Trend Engine)
@@ -229,6 +230,9 @@
           if (res.ok) {
             const data = await res.json();
             setLiveState(data);
+            if (data?.channel_info?.connected) {
+              setAuthModalUrl(null);
+            }
             if (data.custom_prompt) setPromptText(data.custom_prompt);
             if (data.topic_focus) setTopicFocus(data.topic_focus);
             if (data.available_videos && data.available_videos.length > 0) {
@@ -277,13 +281,21 @@
             body: JSON.stringify({ action: actionName, ...payload })
           });
           const result = await res.json();
+          if (result.auth_url) {
+            setAuthModalUrl(result.auth_url);
+            try {
+              window.open(result.auth_url, '_blank');
+            } catch (err) {
+              console.warn("Pop-up blocked by browser, modal shown instead:", err);
+            }
+          }
           setToastMsg(result.message || "Action executed successfully");
-          setTimeout(() => setToastMsg(null), 3500);
+          setTimeout(() => setToastMsg(null), 4500);
           refreshData();
           fetchExtendedData();
         } catch (e) {
           setToastMsg("Execution failed: " + e.message);
-          setTimeout(() => setToastMsg(null), 3500);
+          setTimeout(() => setToastMsg(null), 4000);
         } finally {
           setActionLoading(false);
         }
@@ -1244,6 +1256,59 @@
               </div>
             </section>
           </main>
+
+          {/* Modal: YouTube Google Sign-In */}
+          <AnimatePresence>
+            {authModalUrl && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
+              >
+                <motion.div 
+                  initial={{ scale: 0.92, y: 15 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.92, y: 15 }}
+                  className="liquid-glass bg-slate-950/95 max-w-md w-full p-6 space-y-4 border border-amber-500/50 rounded-2xl text-center shadow-2xl"
+                >
+                  <div className="w-12 h-12 mx-auto rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                    </svg>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-base font-black text-white uppercase tracking-wider">
+                      Connect YouTube Channel
+                    </h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Google OAuth sign-in is ready. Click below to choose your YouTube channel in your browser:
+                    </p>
+                  </div>
+                  <a 
+                    href={authModalUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                      setTimeout(() => setAuthModalUrl(null), 3000);
+                    }}
+                    className="liquid-btn-primary block w-full py-2.5 text-xs font-black uppercase tracking-wider text-center text-white"
+                  >
+                    Open Google Sign-In Tab
+                  </a>
+                  <p className="text-[10px] text-slate-400">
+                    Once authorized, your channel will automatically appear connected in the studio.
+                  </p>
+                  <button 
+                    onClick={() => setAuthModalUrl(null)}
+                    className="text-[11px] text-slate-400 hover:text-slate-200 transition-colors pt-1 underline"
+                  >
+                    Dismiss
+                  </button>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Modal: 50 Scraped Streams in Radar Vault */}
           <AnimatePresence>
