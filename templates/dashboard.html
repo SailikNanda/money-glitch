@@ -316,13 +316,15 @@
       const channelTitle = liveState?.channel_info?.channel_title || "Clivox";
       const channelId = liveState?.channel_info?.channel_id || "UCk8rHfFBIOh80mBOovlWCwA";
       const channelHandle = liveState?.channel_info?.custom_url || "@clivox-era";
-      const totalCandidatesCount = liveState?.total_candidates || candidates.length || 50;
-      const totalClipsCount = liveState?.total_clips || clips.length || 8;
-      const totalQueueCount = liveState?.total_queue || queue.length || 8;
-      const publishedToday = liveState?.published_today ?? 1;
+      const totalCandidatesCount = liveState?.total_candidates ?? (candidates?.length ?? 0);
+      const totalClipsCount = liveState?.total_clips ?? (clips?.length ?? 0);
+      const totalQueueCount = liveState?.total_queue ?? (queue?.length ?? 0);
+      const publishedToday = liveState?.published_today ?? 0;
       const isParallelActive = liveState?.is_active || false;
       const parallelProgress = liveState?.progress || 0;
-      const storageMb = liveState?.storage_stats?.clips_storage_mb || "387.67";
+      const storageMb = (liveState?.storage_stats?.clips_storage_mb !== undefined && liveState?.storage_stats?.clips_storage_mb !== null)
+        ? Number(liveState.storage_stats.clips_storage_mb).toFixed(2)
+        : "0.00";
 
       // Real Virality Scores from latest clip
       const realVirality = liveState?.virality_score || 93.0;
