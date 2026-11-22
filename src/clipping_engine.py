@@ -45,6 +45,12 @@ class ClippingEngine:
         self.font_impact = "C\\:/Windows/Fonts/impact.ttf"
         if not Path("C:/Windows/Fonts/impact.ttf").exists():
             self.font_impact = "C\\:/Windows/Fonts/arial.ttf"
+        self._ensure_viral_assets()
+
+    def _ensure_viral_assets(self):
+        """Ensures that assets/audio and assets/memes directories exist."""
+        (ASSETS_DIR / "audio").mkdir(parents=True, exist_ok=True)
+        (ASSETS_DIR / "memes").mkdir(parents=True, exist_ok=True)
 
     def process_video_to_shorts(
         self,
@@ -328,39 +334,69 @@ class ClippingEngine:
         """
         # Determine genre classification for intelligent director
         topic_lower = (topic or "").lower()
-        is_comedy_or_meme = any(k in topic_lower for k in ["rage", "fail", "glitch", "funny", "meme", "speed", "kai", "jynxzi", "trivia", "chaos"])
+        is_comedy_or_meme = any(k in topic_lower for k in ["rage", "fail", "glitch", "funny", "meme", "speed", "kai", "jynxzi", "trivia", "chaos", "karma"])
         is_cinema = any(k in topic_lower for k in ["cinema", "movie", "trailer", "soundtrack", "film", "anime"])
         is_sports = any(k in topic_lower for k in ["sport", "ufc", "boxing", "nba", "football", "goal", "clutch", "drift"])
 
-        # Determine meme video overlay (Keyed transparent reaction) for comedy/meme/rage genres
-        meme_video_path = None
-        if is_comedy_or_meme and not is_cinema:
-            cand_rock = ASSETS_DIR / "rock_meme.mkv"
-            cand_emo = ASSETS_DIR / "emotional_damage.mkv"
-            cand_walter = ASSETS_DIR / "walter_white.mkv"
-            if "rage" in topic_lower and cand_rock.exists():
-                meme_video_path = cand_rock
-            elif "fail" in topic_lower and cand_emo.exists():
-                meme_video_path = cand_emo
-            elif cand_rock.exists():
-                meme_video_path = cand_rock
+        # Climax timestamp (around 50% - 60% mark)
+        climax_t = round(duration * 0.55, 1)
 
-        # Determine sound effect file (Disabled for cinema/clean edits)
+        # 1. Select Video Meme & Duration from dedicated memes library
+        meme_video_path = None
+        meme_duration = 2.0
+        is_greenscreen = False
+
+        if is_comedy_or_meme and not is_cinema:
+            memes_dir = ASSETS_DIR / "memes"
+            why_running = memes_dir / "why_running.mp4"
+            wait_min = memes_dir / "wait_a_minute_cut.mp4"
+            steve_h = memes_dir / "steve_harvey_cut.mp4"
+            gigachad = memes_dir / "gigachad_cut.mp4"
+            rock_eyebrow = memes_dir / "rock_eyebrow.mp4"
+            walter_fall = memes_dir / "walter_fall.mp4"
+            emo_dmg = memes_dir / "emotional_damage.mp4"
+
+            if ("fail" in topic_lower or "karma" in topic_lower or "glitch" in topic_lower) and wait_min.exists():
+                meme_video_path = wait_min
+                meme_duration = 2.5
+            elif "rage" in topic_lower and why_running.exists():
+                meme_video_path = why_running
+                meme_duration = 2.0
+            elif ("clutch" in topic_lower or "chad" in topic_lower) and gigachad.exists():
+                meme_video_path = gigachad
+                meme_duration = 2.0
+            elif steve_h.exists():
+                meme_video_path = steve_h
+                meme_duration = 2.0
+            elif wait_min.exists():
+                meme_video_path = wait_min
+                meme_duration = 2.5
+            elif rock_eyebrow.exists():
+                meme_video_path = rock_eyebrow
+                meme_duration = 1.8
+                is_greenscreen = True
+
+        # 2. Select SFX
         sfx_path = None
+        audio_dir = ASSETS_DIR / "audio"
+        metal_pipe = audio_dir / "metal_pipe.mp3"
+        bruh = audio_dir / "bruh.mp3"
+        taco_bell = audio_dir / "taco_bell_bong.mp3"
+        vine_boom = ASSETS_DIR / "vine_boom.mp3"
+        wasted = ASSETS_DIR / "wasted.mp3"
+
         if is_cinema:
             sfx_path = None
-        elif meme_cue == "wasted":
-            cand = ASSETS_DIR / "wasted.mp3"
-            if cand.exists():
-                sfx_path = cand
-        elif meme_cue == "emotional_damage":
-            cand = ASSETS_DIR / "emotional_damage_3s.mp3"
-            if cand.exists():
-                sfx_path = cand
-        elif is_comedy_or_meme or meme_cue == "vine_boom":
-            cand = ASSETS_DIR / "vine_boom.mp3"
-            if cand.exists():
-                sfx_path = cand
+        elif "fail" in topic_lower or "karma" in topic_lower:
+            sfx_path = metal_pipe if metal_pipe.exists() else bruh
+        elif meme_cue == "wasted" and wasted.exists():
+            sfx_path = wasted
+        elif vine_boom.exists():
+            sfx_path = vine_boom
+
+        # 3. Trending Background Music (Phonk) for high-energy gaming/comedy
+        phonk_path = audio_dir / "trending_phonk.mp3"
+        use_phonk = (is_comedy_or_meme or layout_plan.get("is_gaming", False)) and not is_cinema and phonk_path.exists()
 
         # Clean hook title for safe FFmpeg drawtext evaluation (strip emojis to prevent box rendering)
         import re
@@ -379,9 +415,6 @@ class ClippingEngine:
             )
         else:
             title_filter = f"drawtext=fontfile='{self.font_impact}':text='{safe_hook}':fontsize=52:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=35"
-
-        # Calculate climax moment for dynamic meme reaction overlay (around 55% mark)
-        climax_t = round(duration * 0.55, 1)
 
         # Build filter complex based on layout
         if layout_plan.get("is_gaming"):
@@ -444,27 +477,61 @@ class ClippingEngine:
             "-i", source_path
         ]
 
-        next_input_idx = 1
+        next_idx = 1
+        meme_idx = None
+        phonk_idx = None
+        sfx_idx = None
 
-        # Check for meme video overlay input
-        if meme_video_path and is_comedy_or_meme:
-            cmd.extend(["-ss", "0.5", "-t", "2.2", "-i", str(meme_video_path)])
-            meme_idx = next_input_idx
-            next_input_idx += 1
-            filter_complex += (
-                f";[{meme_idx}:v]colorkey=0x00FF00:0.35:0.15,scale=520:-1[meme_fg];"
-                f"[v_base][meme_fg]overlay=(W-w)/2:(H-h)/2:enable='between(t,{climax_t},{climax_t + 2.2})'[vout]"
-            )
+        if meme_video_path:
+            cmd.extend(["-i", str(meme_video_path)])
+            meme_idx = next_idx
+            next_idx += 1
+
+        if use_phonk:
+            cmd.extend(["-i", str(phonk_path)])
+            phonk_idx = next_idx
+            next_idx += 1
+
+        if sfx_path:
+            cmd.extend(["-i", str(sfx_path)])
+            sfx_idx = next_idx
+            next_idx += 1
+
+        # Video overlay / cutaway
+        if meme_idx is not None:
+            if is_greenscreen:
+                filter_complex += (
+                    f";[{meme_idx}:v]colorkey=0x00FF00:0.35:0.15,scale=720:-1[meme_fg];"
+                    f"[v_base][meme_fg]overlay=(W-w)/2:(H-h)/2:enable='between(t,{climax_t},{climax_t + meme_duration})'[vout]"
+                )
+            else:
+                filter_complex += (
+                    f";[{meme_idx}:v]scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[meme_fg];"
+                    f"[v_base][meme_fg]overlay=0:0:enable='between(t,{climax_t},{climax_t + meme_duration})'[vout]"
+                )
         else:
             filter_complex += ";[v_base]null[vout]"
 
-        # Check for audio SFX
-        if sfx_path and not is_cinema:
-            cmd.extend(["-i", str(sfx_path)])
-            sfx_idx = next_input_idx
-            next_input_idx += 1
-            delay_ms = int(climax_t * 1000)
-            filter_complex += f";[0:a]aformat=sample_rates=48000:channel_layouts=stereo[a0];[{sfx_idx}:a]aformat=sample_rates=48000:channel_layouts=stereo,adelay={delay_ms}|{delay_ms},volume=1.8[sfx];[a0][sfx]amix=inputs=2:duration=first:dropout_transition=2,aformat=sample_rates=48000:channel_layouts=stereo[aout]"
+        # Audio mixing graph
+        audio_inputs = ["[0:a]aformat=sample_rates=48000:channel_layouts=stereo[a0]"]
+        mix_inputs = ["[a0]"]
+        delay_ms = int(climax_t * 1000)
+
+        if meme_idx is not None:
+            audio_inputs.append(f"[{meme_idx}:a]aformat=sample_rates=48000:channel_layouts=stereo,adelay={delay_ms}|{delay_ms},volume=2.2[a_meme]")
+            mix_inputs.append("[a_meme]")
+
+        if phonk_idx is not None:
+            audio_inputs.append(f"[{phonk_idx}:a]aloop=loop=-1:size=2e+09,volume=0.20,atrim=0:{int(duration)}[a_phonk]")
+            mix_inputs.append("[a_phonk]")
+
+        if sfx_idx is not None:
+            audio_inputs.append(f"[{sfx_idx}:a]aformat=sample_rates=48000:channel_layouts=stereo,adelay={delay_ms}|{delay_ms},volume=1.9[a_sfx]")
+            mix_inputs.append("[a_sfx]")
+
+        if len(mix_inputs) > 1:
+            audio_complex = ";".join(audio_inputs) + f";{''.join(mix_inputs)}amix=inputs={len(mix_inputs)}:duration=first:dropout_transition=2,aformat=sample_rates=48000:channel_layouts=stereo[aout]"
+            filter_complex += ";" + audio_complex
             audio_maps = ["-map", "[aout]"]
         else:
             audio_maps = ["-map", "0:a?"]
