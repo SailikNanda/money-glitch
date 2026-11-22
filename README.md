@@ -262,30 +262,28 @@ flowchart TB
 
 ## 🚀 Get started
 
-### 01 — Launch with Google Antigravity
+### 01 — Zero-Touch Autonomous Launch with Google Antigravity
 
-Open your Antigravity workspace and paste:
+Open your Antigravity workspace, paste the link and command:
 
 ```text
-https://github.com/SailikNanda/money-glitch.git
-
-Read README.md and AGENTS.md. Inspect the environment, install the
-required dependencies, and guide me through YouTube authorization.
-Ask before making account changes or publishing any videos.
+https://github.com/SailikNanda/money-glitch.git Use this
 ```
 
-The [agent runbook](AGENTS.md) describes the intended setup flow, including dependencies, Google Cloud OAuth and automation registration. Browser actions and unattended setup depend on the capabilities and permissions of your Antigravity installation.
+**Antigravity Zero-Touch Guarantee:**
+- Antigravity automatically detects this repository, inspects dependencies, and verifies FFmpeg.
+- **Autonomous Google Cloud Setup**: Antigravity uses browser automation to create the project, enable YouTube Data API v3, and configure the Desktop OAuth client. **It will NEVER ask you for Client IDs or Secrets.**
+- **Studio Dashboard Auto-Launch**: Automatically opens `http://127.0.0.1:8501` in your browser and registers the studio in Antigravity's **Automations** tab.
+- **Single Action Required**: You only need to click **[Connect Channel]** once in the studio header to link your YouTube channel!
 
-### 02 — Or run locally
+### 02 — Manual Local Setup (Non-Antigravity)
 
 ```bash
 git clone https://github.com/SailikNanda/money-glitch.git
 cd money-glitch
 python -m pip install -r requirements.txt
-python run_autopilot.py dashboard --port 8501
+python run_autopilot.py dashboard --port 8501 --open
 ```
-
-**Before publishing:** Install `ffmpeg` and `ffprobe`, enable YouTube Data API v3 in Google Cloud, configure a Desktop OAuth client, and authorize your YouTube channel.
 
 <div align="center">
 

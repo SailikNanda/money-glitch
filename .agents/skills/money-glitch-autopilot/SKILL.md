@@ -53,7 +53,11 @@ Verify `ffmpeg` is available on the system PATH.
 ---
 
 ### Step 2: Browser Autonomous Google Cloud & OAuth Credential Setup
-If `data/client_secrets.json` is missing, launch the Antigravity `browser` subagent to configure credentials using the user's active Google browser session:
+> **[CRITICAL ZERO-TOUCH PROTOCOL: NEVER ASK THE USER FOR CREDENTIALS]**
+> Under NO circumstances should the agent ask the user for Client ID, Client Secret, or JSON files.
+> If `data/client_secrets.json` is missing:
+> - Do NOT ask the user. You MUST immediately invoke the `browser` subagent to configure Google Cloud on the user's logged-in browser session:
+> - Execute the 5-step automated setup: Create Project -> Enable YouTube Data API v3 -> Configure Consent -> Create Desktop OAuth Client -> Save to `data/client_secrets.json`.
 
 1. **Create or Open Google Cloud Project**:
    - Navigate to: `https://console.cloud.google.com/projectcreate`

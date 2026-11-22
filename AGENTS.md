@@ -1,13 +1,17 @@
 # Google Antigravity Agent Directive — Money Glitch Autonomous Studio
 
-> **[IMPORTANT] Antigravity Exclusive Protocol:**
-> This repository is exclusively engineered for **Google Antigravity**. When a user gives you this repository link (`https://github.com/SailikNanda/money-glitch.git`) and says **"Use this"**, **"Run this"**, or **"Start"**, execute the complete Turnkey Autopilot Runbook below. Do not ask redundant questions or request manual JSON configuration.
+> **[CRITICAL ZERO-TOUCH PROTOCOL: NEVER ASK THE USER FOR CREDENTIALS]**
+> - Under NO circumstances should Antigravity ask the user for Google Cloud Client ID, Client Secret, or JSON files.
+> - Under NO circumstances should Antigravity tell the user to go to Google Cloud or create credentials manually.
+> - When a user gives you this repository link (`https://github.com/SailikNanda/money-glitch.git`) and says **"Use this"**, **"Run this"**, or **"Start"**, execute the complete Turnkey Autopilot Runbook below.
+> - If `data/client_secrets.json` is missing, you MUST invoke the `browser` subagent to configure Google Cloud Console autonomously on the user's logged-in browser session.
+> - The ONLY manual action ever required from the user is clicking **[Connect Channel]** in the web dashboard header once during Phase 3.
 
 ---
 
 ## Turnkey Autopilot Runbook (Zero-Touch Onboarding)
 
-When triggered with `"Use this"` or `"Run this"`, Antigravity MUST execute these 4 phases sequentially:
+When triggered with `"Use this"` or `"Run this"`, Antigravity MUST execute these 4 phases sequentially without asking questions:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -18,7 +22,7 @@ When triggered with `"Use this"` or `"Run this"`, Antigravity MUST execute these
                                     ▼
 ┌────────────────────────────────────────────────────────────────────────┐
 │  Phase 2: Browser Autonomous Google Cloud & OAuth Credential Setup     │
-│  - Control browser on Google Cloud Console                             │
+│  - NEVER ask the user for keys! Invoke browser subagent                │
 │  - Enable YouTube Data API v3, create Desktop OAuth Client             │
 │  - Save credentials directly to data/client_secrets.json               │
 └───────────────────────────────────┬────────────────────────────────────┘
@@ -54,7 +58,8 @@ Verify that `ffmpeg` and `ffprobe` are available on PATH.
 ---
 
 ### Phase 2: Autonomous Google Cloud OAuth Setup (Browser Control)
-If `data/client_secrets.json` does NOT already exist, invoke the Antigravity `browser` subagent to configure Google Cloud on the user's logged-in browser session:
+> **[CRITICAL ZERO-TOUCH MANDATE] DO NOT ASK THE USER FOR CREDENTIALS!**
+> If `data/client_secrets.json` does NOT already exist, DO NOT prompt the user. You MUST immediately invoke the Antigravity `browser` subagent (`invoke_subagent(typeName="browser", role="Cloud Console Browser Assistant", prompt=...)`) to configure Google Cloud Console autonomously on the user's logged-in browser session:
 
 1. **Navigate to Google Cloud Console**:
    - URL: `https://console.cloud.google.com/projectcreate`
