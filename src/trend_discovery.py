@@ -20,7 +20,9 @@ from .config import (
     YOUTUBE_DATA_API_KEY,
     TOPIC_WEIGHTS,
     CATEGORIES_CATALOG,
-    DISCOVERY_QUERIES
+    DISCOVERY_QUERIES,
+    FRESHNESS_WINDOW_DAYS,
+    FRESHNESS_WINDOW_HOURS
 )
 from .db import add_candidate, get_setting
 from .rights_validator import RightsValidator
@@ -114,10 +116,10 @@ class TrendDiscoveryEngine:
         return discovered_candidates
 
     def _search_via_api(self, query: str, category: str, limit: int = 5) -> List[Dict[str, Any]]:
-        """Search YouTube Data API v3 and get detailed video metrics with strict 72h freshness filter."""
+        """Search YouTube Data API v3 and get detailed video metrics with strict 5-day freshness filter."""
         from datetime import timedelta
         now_dt = datetime.now(timezone.utc)
-        published_after = (now_dt - timedelta(days=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        published_after = (now_dt - timedelta(days=FRESHNESS_WINDOW_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         candidates = []
         search_res = self.youtube.search().list(
@@ -125,7 +127,7 @@ class TrendDiscoveryEngine:
             part="id,snippet",
             maxResults=limit,
             type="video",
-            publishedAfter=published_after,  # Strictly within the last 72 hours (never 1 month old!)
+            publishedAfter=published_after,  # Strictly within the last 5 days (120 hours)
             order="viewCount",                # Rank by real-time viral velocity
             videoDuration="medium",           # 4-20 minutes
             relevanceLanguage="en",
@@ -151,7 +153,7 @@ class TrendDiscoveryEngine:
             published_str = snippet.get("publishedAt", "")
             velocity = self._calculate_velocity(view_count, published_str)
 
-            # Freshness verification: Reject any video older than 72 hours
+            # Freshness verification: Reject any video older than 5 days (120 hours)
             if velocity < 0:
                 continue
 
@@ -171,7 +173,7 @@ class TrendDiscoveryEngine:
         return candidates
 
     def _search_via_ytdlp(self, query: str, category: str, limit: int = 5) -> List[Dict[str, Any]]:
-        """Fallback search using yt-dlp ytsearch with strict freshness filter."""
+        """Fallback search using yt-dlp ytsearch with strict 5-day freshness filter."""
         candidates = []
         
         # Enforce temporal freshness qualifier in search string
@@ -197,14 +199,14 @@ class TrendDiscoveryEngine:
                     if not vid:
                         continue
 
-                    # Strict 72h / 3-day age check if upload_date is provided (YYYYMMDD)
+                    # Strict 5-day age check if upload_date is provided (YYYYMMDD)
                     upload_date = entry.get("upload_date") or ""
                     if upload_date and len(upload_date) == 8:
                         try:
                             up_dt = datetime.strptime(upload_date, "%Y%m%d").replace(tzinfo=timezone.utc)
                             age_days = (datetime.now(timezone.utc) - up_dt).total_seconds() / 86400.0
-                            if age_days > 4.0:
-                                continue  # Reject any video older than 4 days
+                            if age_days > float(FRESHNESS_WINDOW_DAYS):
+                                continue  # Reject any video older than 5 days
                         except Exception:
                             pass
 
@@ -229,13 +231,13 @@ class TrendDiscoveryEngine:
         return candidates
 
     def _calculate_velocity(self, view_count: int, published_at_str: str) -> float:
-        """Calculate views per hour since publication. Rejects videos older than 72 hours."""
+        """Calculate views per hour since publication. Rejects videos older than 5 days (120 hours)."""
         try:
             pub_dt = datetime.fromisoformat(published_at_str.replace("Z", "+00:00"))
             now_dt = datetime.now(timezone.utc)
             hours = (now_dt - pub_dt).total_seconds() / 3600.0
-            # Strict rejection if older than 72 hours (3 days)
-            if hours > 72.0:
+            # Strict rejection if older than FRESHNESS_WINDOW_HOURS (120 hours / 5 days)
+            if hours > FRESHNESS_WINDOW_HOURS:
                 return -1.0  # Rejected
             hours = max(hours, 0.5)
             return round(view_count / hours, 2)

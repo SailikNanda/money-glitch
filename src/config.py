@@ -43,6 +43,10 @@ DAILY_MAX_PUBLISHED_SHORTS = 3   # Optimal safe limit for YouTube algorithm (avo
 MIN_UPLOAD_SPACING_HOURS = 4     # Required gap between uploads to protect channel health
 AUTONOMOUS_MODE = True           # Auto-pipeline: Discover -> Clip -> Meme Edit -> AI Title -> Queue -> Upload
 
+# Real-Time Freshness Window (Strict 5-day ceiling: Max 120 hours)
+FRESHNESS_WINDOW_DAYS = 5
+FRESHNESS_WINDOW_HOURS = 120.0
+
 # Topic Priorities & Dynamic Multi-Genre Weights (Dynamic Real-Time Trend Engine)
 TOPIC_WEIGHTS = {
     "gaming": 0.35,      # Viral streamers (Speed, Kai, Jynxzi, Fanum, Sketch) & trending games (GTA 6, etc.)
