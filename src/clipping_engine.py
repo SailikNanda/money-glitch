@@ -31,7 +31,7 @@ from .config import (
     MAX_CLIP_DURATION
 )
 from .db import add_clip
-from .ai_generator import ViralAIGenerator
+from .ai_generator import AntigravityDirector
 
 logger = logging.getLogger("ClippingEngine")
 logging.basicConfig(level=logging.INFO)
@@ -41,7 +41,7 @@ class ClippingEngine:
         self.supoclip_url = SUPOCLIP_API_URL
         self.supoclip_key = SUPOCLIP_API_KEY
         self.gaming_mode = GAMING_LAYOUT_MODE
-        self.ai_generator = ViralAIGenerator()
+        self.ai_generator = AntigravityDirector()
         self.font_impact = "C\\:/Windows/Fonts/impact.ttf"
         if not Path("C:/Windows/Fonts/impact.ttf").exists():
             self.font_impact = "C\\:/Windows/Fonts/arial.ttf"
@@ -109,7 +109,7 @@ class ClippingEngine:
             # 2. Layout detection: check for streamer facecam & gameplay layout
             layout_plan = self._detect_gaming_layout(str(source_file), start_s, duration_s)
 
-            # 3. AI Viral Hook & Metadata Generation (Gemini 2.5/3.5)
+            # 3. AI Viral Hook & Metadata Generation (Antigravity AI Native Engine)
             ai_meta = self.ai_generator.generate_shorts_metadata(
                 video_title=clip_title_prefix,
                 topic=topic,
@@ -189,7 +189,7 @@ class ClippingEngine:
                 "hook_title": "WAIT TILL THE END IN GTA 6!"
             }]
 
-        # Use Gemini LLM reasoning to detect the true viral climax
+        # Use Antigravity AI Native Brain to detect the true viral climax
         candidates = []
         try:
             llm_climax = self.ai_generator.analyze_stream_viral_climax(
