@@ -51,48 +51,142 @@ TOPIC_WEIGHTS = {
     "trends": 0.20,      # Real-time breakout internet news, viral debates & pop-culture moments
 }
 
-# Diverse Streamer & Creator Roster for Zigzag Publishing Pattern
-CREATOR_ROSTER = [
-    "IShowSpeed",
-    "Kai Cenat",
-    "Jynxzi",
-    "Fanum",
-    "Sketch",
-    "xQc",
-    "Tfue",
-    "Pokimane",
-    "Shroud"
-]
+# -------------------------------------------------------------------------
+# 24 Dynamic Multi-Genre Categories (Gaming, Cinema, Sports, Viral Culture)
+# No single creator or niche hardcoded. Explores all creators dynamically.
+# -------------------------------------------------------------------------
+CATEGORIES_CATALOG = {
+    # === 1. GAMING VERTICAL (8 Diverse Categories) ===
+    "gaming_open_world": {
+        "label": "Open World & Sandbox Chaos",
+        "vertical": "gaming",
+        "queries": ["trending open world gameplay funny moments", "GTA 6 open world crazy gameplay", "RDR2 open world hilarious encounters"]
+    },
+    "gaming_fps_esports": {
+        "label": "FPS & Esports Clutches",
+        "vertical": "gaming",
+        "queries": ["1v5 impossible esports clutch 60fps", "Valorant insane ace stream reaction", "Warzone craziest sniper play"]
+    },
+    "gaming_survival_sandbox": {
+        "label": "Survival & Sandbox Traps",
+        "vertical": "gaming",
+        "queries": ["Minecraft insane redstone trap reaction", "Rust craziest base raid clutch", "survival game impossible escape"]
+    },
+    "gaming_horror_jumpscare": {
+        "label": "Horror & Jumpscare Reactions",
+        "vertical": "gaming",
+        "queries": ["funniest gamer horror game jumpscare screams", "lethal company hilarious stream moments", "scariest horror game reaction stream"]
+    },
+    "gaming_physics_destruction": {
+        "label": "Physics Destruction & Simulators",
+        "vertical": "gaming",
+        "queries": ["BeamNG drive most satisfying crash physics", "Teardown insane destruction physics", "simulator game broken physics moments"]
+    },
+    "gaming_rage_fails": {
+        "label": "Gamer Rage & Instant Karma",
+        "vertical": "gaming",
+        "queries": ["streamer rage quit broken controller funny", "gamer instant karma funny moments", "unluckiest gamer moments stream"]
+    },
+    "gaming_souls_bossfights": {
+        "label": "Souls-like & Impossible Boss Fights",
+        "vertical": "gaming",
+        "queries": ["no hit boss fight insane reaction", "Elden Ring impossible boss clutch", "hardest game boss defeated scream"]
+    },
+    "gaming_indie_viral": {
+        "label": "Breakout Viral Indie Games",
+        "vertical": "gaming",
+        "queries": ["viral new indie game crazy gameplay", "trending steam game everyone is playing", "hidden gem indie game insane moment"]
+    },
 
-# Trend Discovery Queries by Topic Category (Rotated Dynamically)
-DISCOVERY_QUERIES = {
-    "gaming": [
-        "trending gaming stream funny moments US",
-        "IShowSpeed hilarious stream moments",
-        "Kai Cenat stream rage moments",
-        "Jynxzi best stream reactions clips",
-        "GTA 6 insane gameplay moments",
-        "crazy gaming clutch fail stream highlight",
-        "Sketch streamer funniest clips"
-    ],
-    "cinema": [
-        "trending official movie trailer climax 2026",
-        "blockbuster movie epic action scene clip",
-        "anime viral fight scene 4k clip",
-        "trending marvel cinema scene soundtrack"
-    ],
-    "sports": [
-        "NBA craziest buzzer beater highlights 2026",
-        "UFC viral knockout finish reaction",
-        "Premier League incredible goal of the week",
-        "insane athletic play sports highlights"
-    ],
-    "trends": [
-        "real time viral internet trend moments US",
-        "breakout pop culture internet news 2026",
-        "funniest viral video of the week US"
-    ]
+    # === 2. MOVIES & CINEMA VERTICAL (5 Diverse Categories) ===
+    "cinema_blockbuster_trailers": {
+        "label": "Official Blockbuster Movie Trailers",
+        "vertical": "cinema",
+        "queries": ["official movie trailer 2026 4K", "blockbuster movie teaser climax reaction", "new superhero movie trailer climax"]
+    },
+    "cinema_epic_action": {
+        "label": "Cinematic Action & Chase Sequences",
+        "vertical": "cinema",
+        "queries": ["greatest movie car chase scene 4K", "epic movie battle sequence climax", "best movie stunt ever performed"]
+    },
+    "cinema_anime_battles": {
+        "label": "Viral Anime Fight Climaxes",
+        "vertical": "cinema",
+        "queries": ["anime fight scene 4K 60fps", "most hyped anime battle climax", "legendary anime transformation scene"]
+    },
+    "cinema_plot_twists": {
+        "label": "Mind-Bending Movie Plot Twists",
+        "vertical": "cinema",
+        "queries": ["craziest movie plot twist nobody saw coming", "thriller movie ending mind blown", "most shocking cinema revelations"]
+    },
+    "cinema_soundtrack_drops": {
+        "label": "Cinematic Music & Visual Drops",
+        "vertical": "cinema",
+        "queries": ["epic movie soundtrack visual drop", "Hans Zimmer epic cinema score moment", "chill-inducing movie sequence soundtrack"]
+    },
+
+    # === 3. SPORTS & ATHLETICS VERTICAL (6 Diverse Categories) ===
+    "sports_nba_basketball": {
+        "label": "NBA Buzzer Beaters & Dunk Climaxes",
+        "vertical": "sports",
+        "queries": ["NBA game winner buzzer beater highlights", "coldest basketball ankle breaker dunk", "insane basketball clutch moment"]
+    },
+    "sports_combat_ufc_boxing": {
+        "label": "UFC & Boxing Knockout Finishes",
+        "vertical": "sports",
+        "queries": ["UFC brutal knockout finish slow motion", "boxing walk off knockout counter punch", "most shocking MMA comeback knockout"]
+    },
+    "sports_soccer_golazos": {
+        "label": "Football / Soccer Screamer Goals",
+        "vertical": "sports",
+        "queries": ["Champions League impossible goal of the month", "Premier League 90th minute bicycle kick", "craziest goalkeeper save in history"]
+    },
+    "sports_extreme_stunts": {
+        "label": "Extreme Sports & Stunt Feats",
+        "vertical": "sports",
+        "queries": ["Red Bull extreme stunt viral clip", "insane skateboard ramp trick 4K", "parkour impossible roof jump save"]
+    },
+    "sports_nfl_clutches": {
+        "label": "Football / NFL Impossible Catches",
+        "vertical": "sports",
+        "queries": ["NFL craziest one handed touchdown catch", "hail mary 4th quarter clutch play", "unbelievable football tackle return"]
+    },
+    "sports_motorsport_drifts": {
+        "label": "Motorsports & Supercar Drifts",
+        "vertical": "sports",
+        "queries": ["Formula 1 insane overtake 60fps", "supercar drift near miss save", "rally car impossible corner slide"]
+    },
+
+    # === 4. VIRAL INTERNET & CULTURE (5 Diverse Categories) ===
+    "viral_unbelievable_odds": {
+        "label": "1 in a Million Odds & Lucky Saves",
+        "vertical": "viral",
+        "queries": ["one in a million caught on camera", "craziest lucky save ever recorded", "unbelievable coincidence real life"]
+    },
+    "viral_tech_robotics": {
+        "label": "Futuristic Tech & Robotics Leaks",
+        "vertical": "viral",
+        "queries": ["insane futuristic humanoid robot demo", "new futuristic tech gadget reveal", "flying car technology real demo"]
+    },
+    "viral_wholesome_animals": {
+        "label": "Clever Pets & Wild Animal Feats",
+        "vertical": "viral",
+        "queries": ["smartest dog saves owner caught on camera", "wild animal encounters incredible moments", "funniest cat reflexes viral clip"]
+    },
+    "viral_satisfying_craft": {
+        "label": "Satisfying Restorations & Visual ASMR",
+        "vertical": "viral",
+        "queries": ["hydraulic press vs titanium satisfying", "ancient rusty tool restoration 4K", "satisfying optical illusion craft"]
+    },
+    "viral_street_trivia": {
+        "label": "Public Street Interviews & Challenges",
+        "vertical": "viral",
+        "queries": ["funniest street interview public questions", "cash trivia challenge unexpected answer", "IQ test on the street hilarious"]
+    }
 }
+
+# Dynamic Category Queries Extracted from Catalog
+DISCOVERY_QUERIES = {k: v["queries"] for k, v in CATEGORIES_CATALOG.items()}
 
 # Upload Defaults
 DEFAULT_PRIVACY_STATUS = os.getenv("AUTOPILOT_PRIVACY", "public")  # 'public' for auto-publishing, 'unlisted' for staging

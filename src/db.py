@@ -286,7 +286,17 @@ def record_published(clip_id: int, youtube_video_id: str, youtube_url: str, titl
 
 def list_published(limit: int = 50) -> List[Dict[str, Any]]:
     conn = get_connection()
-    rows = conn.execute("SELECT * FROM published_videos ORDER BY published_at DESC LIMIT ?", (limit,)).fetchall()
+    query = """
+    SELECT 
+        p.*, 
+        cand.category,
+        cand.channel_title
+    FROM published_videos p
+    LEFT JOIN clips c ON p.clip_id = c.id
+    LEFT JOIN candidates cand ON c.source_video_id = cand.video_id
+    ORDER BY p.published_at DESC LIMIT ?
+    """
+    rows = conn.execute(query, (limit,)).fetchall()
     conn.close()
     return [dict(r) for r in rows]
 

@@ -179,8 +179,9 @@ class AntigravityDirector:
             keywords = [topic_clean, "EPIC", "CINEMATIC", "CHILLS", "INSANE"]
             sfx = "vine_boom"
         else:
-            hook_title = f"HE ACTUALLY BROKE {topic_clean}! 💀"
-            keywords = [topic_clean, "GLITCH", "BROKE", "INSANE", "WTF"]
+            display_name = streamer_clean if (streamer_clean and streamer_clean not in ("STREAMER", "CREATOR")) else "HE"
+            hook_title = f"{display_name} ACTUALLY BROKE {topic_clean}! 💀"
+            keywords = [display_name[:10], topic_clean[:10], "INSANE", "BROKE", "WTF"]
             sfx = "vine_boom"
 
         logger.info(f"[Antigravity AI Native Engine] Climax Directed: '{hook_title}' @ {start_time}s (Climax @ {climax_second}s)")
@@ -213,7 +214,7 @@ class AntigravityDirector:
         rng = random.Random(seed_val)
 
         title_upper = video_title.upper()
-        streamer = channel_name or ("IShowSpeed" if "SPEED" in title_upper else "Streamer")
+        streamer = channel_name.strip() if channel_name else ("IShowSpeed" if "SPEED" in title_upper else "Gamer")
 
         # Action / Context extraction
         action_type = "glitch"

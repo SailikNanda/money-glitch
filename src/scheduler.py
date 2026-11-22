@@ -248,56 +248,66 @@ class AutonomousScheduler:
 
     def _select_zigzag_candidate(self, candidates: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """
-        Zigzag Creator & Topic Diversification Selection:
-        Rotates between distinct creators and categories.
-        Avoids posting from the same creator or same sub-niche consecutively.
+        Universal Zigzag Creator & Topic Diversification Selection:
+        Rotates between distinct creators across millions of channels on YouTube.
+        Rotates across 24 dynamic categories, avoiding channel or category monotony.
         """
         if not candidates:
             return None
 
         # Fetch recent uploads to inspect recently published creators and categories
         recent_published = list_published(limit=10)
-        recent_titles_lower = [p.get("title", "").lower() for p in recent_published]
+        recent_channels = [(p.get("channel_title") or "").strip().lower() for p in recent_published]
+        recent_categories = [(p.get("category") or "").strip().lower() for p in recent_published]
 
-        # Prioritize candidates from creators that do NOT appear in the most recent uploads
         def _zigzag_penalty(cand):
-            title = cand.get("title", "").lower()
-            category = cand.get("category", "gaming").lower()
+            channel = (cand.get("channel_title") or "").strip().lower()
+            category = (cand.get("category") or "").strip().lower()
 
             penalty = 0
-            for idx, rtitle in enumerate(recent_titles_lower[:4]):
-                for creator in ["speed", "kai", "jynxzi", "fanum", "sketch", "gta", "cinema", "sports"]:
-                    if creator in title and creator in rtitle:
-                        penalty += (4 - idx) * 15
+            # 1. Creator repetition penalty: Heavily penalize channels published recently
+            for idx, rchannel in enumerate(recent_channels[:5]):
+                if channel and rchannel and channel == rchannel:
+                    penalty += (5 - idx) * 30  # Strong repulsion against same creator
 
-            # Local file bonus (ready for immediate processing)
+            # 2. Category repetition penalty: Alternate between verticals & categories
+            for idx, rcat in enumerate(recent_categories[:2]):
+                if category and rcat and category == rcat:
+                    penalty += (2 - idx) * 15
+
+            # 3. Virality velocity reward: Favor high-performing trending moments
+            virality = float(cand.get("virality_score", 90.0))
+            velocity_bonus = min(20.0, float(cand.get("view_velocity", 0.0)) / 200.0)
+
+            # 4. Local file bonus (ready for immediate processing)
             has_file = Path(cand.get("url", "")).exists() or (WORKSPACE_DIR / "clips" / cand.get("url", "")).exists()
-            file_bonus = -10 if has_file else 0
+            file_bonus = 10 if has_file else 0
 
-            return penalty + file_bonus
+            # Total score (lower is better in sorted key)
+            return penalty - (virality + velocity_bonus + file_bonus)
 
         sorted_candidates = sorted(candidates, key=_zigzag_penalty)
         chosen = sorted_candidates[0]
-        logger.info(f"[Zigzag Engine] Selected candidate: '{chosen.get('title')}' (Category: {chosen.get('category')})")
+        logger.info(f"[Zigzag Engine] Selected candidate: '{chosen.get('title')}' by Creator '{chosen.get('channel_title')}' (Category: {chosen.get('category')})")
         return chosen
 
     def _select_zigzag_clip_to_upload(self, ready_clips: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """
-        Selects next clip to publish ensuring creator & genre zigzag rotation.
+        Selects next clip to publish ensuring creator & genre zigzag rotation across all creators.
         """
         if not ready_clips:
             return None
 
         recent_published = list_published(limit=10)
-        recent_titles_lower = [p.get("title", "").lower() for p in recent_published]
+        recent_channels = [(p.get("channel_title") or "").strip().lower() for p in recent_published]
+        recent_categories = [(p.get("category") or "").strip().lower() for p in recent_published]
 
         def _clip_penalty(clip):
-            title = clip.get("title", "").lower()
+            channel = (clip.get("channel_name") or clip.get("source_video_id") or "").strip().lower()
             penalty = 0
-            for idx, rtitle in enumerate(recent_titles_lower[:4]):
-                for creator in ["speed", "kai", "jynxzi", "fanum", "sketch", "gta", "cinema", "sports"]:
-                    if creator in title and creator in rtitle:
-                        penalty += (4 - idx) * 15
+            for idx, rchannel in enumerate(recent_channels[:5]):
+                if channel and rchannel and channel in rchannel:
+                    penalty += (5 - idx) * 30
 
             virality = float(clip.get("virality_score", 90.0))
             return penalty - virality

@@ -89,25 +89,24 @@ If `data/client_secrets.json` is missing, launch the Antigravity `browser` subag
 
 ---
 
-### Step 4: Autonomous Production, Zigzag Diversification & Publishing
+### Step 4: Autonomous Production, 24-Category Zigzag & Publishing
 Antigravity acts as the Chief Content Officer and Master Editor:
 
-1. **Universal Real-Time Trend Discovery (No Hardcoded Niches/Streamers)**:
-   - **Never hardcode just one game or one creator.**
-   - Dynamically discover real-time trends across 4 core verticals:
-     - **Gaming**: Top viral streamers (IShowSpeed, Kai Cenat, Jynxzi, Fanum, Sketch, xQc, etc.) and trending titles (GTA 6, Fortnite, Valorant, Call of Duty, Minecraft).
-     - **Movies & Cinema**: Trending official movie trailers, box office hype, anime battle climaxes, blockbuster pop culture.
-     - **Sports & Athletics**: Viral NBA buzzer beaters, UFC knockouts, Champions League / Premier League goals, crazy athletic moments.
-     - **Viral Internet News & Culture**: Real-time breaking internet debates, viral memes, and high-velocity social phenomena.
-2. **Zigzag Creator & Topic Rotation Protocol (Creator Diversity)**:
-   - **Strict Rule:** Never publish the same streamer or sub-topic consecutively.
-   - Execute a smart **Zigzag Rotation**:
-     - Day 1: IShowSpeed (Gaming)
-     - Day 2: Kai Cenat (Gaming) or Trending Movie Trailer Climax (Cinema)
-     - Day 3: Jynxzi (Gaming) or Viral NBA/UFC KO (Sports)
-     - Day 4: Fanum / Sketch (Gaming) or Viral Internet Phenomenon (Trends)
-     - Day 5: Return to IShowSpeed after full diverse rotation!
-   - This keeps the channel's audience engaged, broadens algorithmic reach, and prevents creator fatigue.
+1. **Universal 24-Category Real-Time Discovery (Zero Hardcoded Channels)**:
+   - **Never hardcode just one creator, one game, or a fixed list of channels.** Evaluates all creators across YouTube based on content and virality.
+   - Rotates through **24 distinct high-velocity categories**:
+     - **Gaming (8 Categories)**: Open-world chaos (GTA 6/RDR2), FPS/Esports clutches (Valorant/Warzone), survival traps (Minecraft/Rust), horror jumpscares (Lethal Company/FNAF), physics destruction (BeamNG/Teardown), gamer rage & instant karma, souls-like boss fights (Elden Ring), and breakout viral indie games.
+     - **Movies & Cinema (5 Categories)**: Blockbuster trailers, epic action & car chases, anime fight climaxes (4K 60fps), mind-bending plot twists, and chilling soundtrack visual drops.
+     - **Sports & Athletics (6 Categories)**: NBA buzzer beaters & ankle breaker dunks, UFC/boxing knockout finishes, Champions League/Premier League golazos, extreme Red Bull stunts, NFL impossible catches, and supercar drifts.
+     - **Viral Internet & Culture (5 Categories)**: 1-in-a-million lucky saves, futuristic robotics/tech leaks, clever pets & wild animal feats, satisfying restorations (ASMR), and public street trivia.
+2. **Balanced Creator Sampling & Anti-Monotony Protocol**:
+   - **Famous & Trending Priority**: Higher view-velocity trending videos receive primary priority weight.
+   - **Anti-Monotony Exploration**: Random sampling jitter (+0 to +15 pts) is applied across search results so breakout clips from small/medium creators compete fairly with mega-channels.
+   - **Max 1 Candidate Per Channel Per Batch**: Prevents any single channel from dominating discovery results.
+3. **Universal Zigzag Creator & Topic Rotation Protocol**:
+   - **Strict Rule:** Never publish the same creator or the same category consecutively.
+   - The engine checks recent uploads and enforces a heavy penalty if a channel was featured in the last 5 uploads.
+   - Cycles across categories and creators in a dynamic zigzag rotation to keep channel engagement at peak levels.
 3. **Dynamic Climax Reasoning (No Generic Presets)**:
    - Antigravity scans the audio waveform and transcript for scream peaks, instant karma, funny NPC interactions, movie climax drops, or athletic clutches.
    - Computes clip duration (25–35s) and centers the climax at 55%–65% for maximum viewer retention.

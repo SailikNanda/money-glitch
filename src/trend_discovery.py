@@ -19,6 +19,7 @@ from .config import (
     GOOGLE_API_KEY,
     YOUTUBE_DATA_API_KEY,
     TOPIC_WEIGHTS,
+    CATEGORIES_CATALOG,
     DISCOVERY_QUERIES
 )
 from .db import add_candidate, get_setting
@@ -38,37 +39,70 @@ class TrendDiscoveryEngine:
                 logger.warning(f"Could not initialize YouTube API client: {e}. Falling back to yt-dlp.")
         self.rights_validator = RightsValidator()
 
-    def run_discovery_cycle(self, max_per_category: int = 5) -> List[Dict[str, Any]]:
+    def run_discovery_cycle(self, max_per_category: int = 3, categories_per_cycle: int = 6) -> List[Dict[str, Any]]:
         """
-        Executes a scheduled trend discovery cycle across GTA 6, gaming, and viral trends.
+        Executes a balanced trend discovery cycle across 24 dynamic categories.
+        Rotates across Gaming, Cinema, Sports, and Viral Culture.
+        Samples from any creator on YouTube with balanced velocity + exploration scoring.
         """
-        logger.info("Starting Trend Discovery Cycle...")
+        import random
+        logger.info("Starting Multi-Genre Balanced Trend Discovery Cycle...")
         discovered_candidates = []
 
-        # Fetch dynamic weights from system settings if updated
-        weights = get_setting("topic_weights", TOPIC_WEIGHTS)
-        logger.info(f"Active topic weights: {weights}")
+        # Group categories by vertical
+        verticals = {"gaming": [], "cinema": [], "sports": [], "viral": []}
+        for cat_id, cat_info in CATEGORIES_CATALOG.items():
+            vert = cat_info.get("vertical", "gaming")
+            verticals.setdefault(vert, []).append((cat_id, cat_info))
 
-        for category, queries in DISCOVERY_QUERIES.items():
-            for query in queries:
-                logger.info(f"Discovering [{category.upper()}]: '{query}'")
-                if self.youtube:
-                    try:
-                        results = self._search_via_api(query, category, limit=max_per_category)
-                        discovered_candidates.extend(results)
-                    except HttpError as err:
-                        logger.warning(f"YouTube API error: {err}. Falling back to yt-dlp search.")
-                        self.youtube = None
-                        results = self._search_via_ytdlp(query, category, limit=max_per_category)
-                        discovered_candidates.extend(results)
-                else:
-                    results = self._search_via_ytdlp(query, category, limit=max_per_category)
-                    discovered_candidates.extend(results)
+        # Sample categories across all verticals for guaranteed diversity in every cycle
+        sampled_categories = []
+        for vert, cat_list in verticals.items():
+            k = 2 if vert in ("gaming", "cinema") else 1
+            sampled_categories.extend(random.sample(cat_list, min(k, len(cat_list))))
+
+        random.shuffle(sampled_categories)
+        logger.info(f"Selected {len(sampled_categories)} categories for this discovery cycle: {[c[0] for c in sampled_categories]}")
+
+        seen_channels = set()
+
+        for category_id, cat_info in sampled_categories:
+            queries = cat_info.get("queries", [])
+            query = random.choice(queries) if queries else f"trending {category_id}"
+            logger.info(f"Discovering [{cat_info.get('label', category_id)}]: '{query}'")
+
+            batch_results = []
+            if self.youtube:
+                try:
+                    batch_results = self._search_via_api(query, category_id, limit=max_per_category * 2)
+                except HttpError as err:
+                    logger.warning(f"YouTube API error: {err}. Falling back to yt-dlp search.")
+                    self.youtube = None
+                    batch_results = self._search_via_ytdlp(query, category_id, limit=max_per_category * 2)
+            else:
+                batch_results = self._search_via_ytdlp(query, category_id, limit=max_per_category * 2)
+
+            # Balanced Creator Sampling: Favor high-velocity/famous clips while avoiding channel repetition
+            for cand in batch_results:
+                channel = (cand.get("channel_title") or "").strip().lower()
+                if channel and channel in seen_channels:
+                    continue  # Strict 1 candidate per channel per cycle to avoid channel dominance
+
+                # Calculate Exploration & Virality Score
+                base_velocity = float(cand.get("view_velocity", 0.0))
+                # Add exploration jitter (+0 to +15 pts) so new/smaller creators also get featured
+                exploration_jitter = random.uniform(0.0, 15.0)
+                cand["virality_score"] = round(min(98.0, max(85.0, 88.0 + (base_velocity / 500.0) + exploration_jitter)), 1)
+
+                if channel:
+                    seen_channels.add(channel)
+                discovered_candidates.append(cand)
+                if len([c for c in discovered_candidates if c.get("category") == category_id]) >= max_per_category:
+                    break
 
         # Ingest and validate rights for each candidate
         new_count = 0
         for cand in discovered_candidates:
-            # Check rights
             eligible, rights_status, attribution = self.rights_validator.validate_candidate(cand)
             cand["rights_status"] = rights_status
             cand["rights_notes"] = attribution
@@ -76,7 +110,7 @@ class TrendDiscoveryEngine:
             if add_candidate(cand):
                 new_count += 1
 
-        logger.info(f"Trend Discovery completed. {len(discovered_candidates)} candidates processed, {new_count} new entries saved.")
+        logger.info(f"Trend Discovery completed. {len(discovered_candidates)} candidates across {len(seen_channels)} creators, {new_count} new entries saved.")
         return discovered_candidates
 
     def _search_via_api(self, query: str, category: str, limit: int = 5) -> List[Dict[str, Any]]:
