@@ -114,14 +114,20 @@ class TrendDiscoveryEngine:
         return discovered_candidates
 
     def _search_via_api(self, query: str, category: str, limit: int = 5) -> List[Dict[str, Any]]:
-        """Search YouTube Data API v3 and get detailed video metrics."""
+        """Search YouTube Data API v3 and get detailed video metrics with strict 72h freshness filter."""
+        from datetime import timedelta
+        now_dt = datetime.now(timezone.utc)
+        published_after = (now_dt - timedelta(days=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
         candidates = []
         search_res = self.youtube.search().list(
             q=query,
             part="id,snippet",
             maxResults=limit,
             type="video",
-            videoDuration="medium",  # 4-20 minutes
+            publishedAfter=published_after,  # Strictly within the last 72 hours (never 1 month old!)
+            order="viewCount",                # Rank by real-time viral velocity
+            videoDuration="medium",           # 4-20 minutes
             relevanceLanguage="en",
             regionCode="US"
         ).execute()
@@ -145,6 +151,10 @@ class TrendDiscoveryEngine:
             published_str = snippet.get("publishedAt", "")
             velocity = self._calculate_velocity(view_count, published_str)
 
+            # Freshness verification: Reject any video older than 72 hours
+            if velocity < 0:
+                continue
+
             candidates.append({
                 "video_id": vid,
                 "url": f"https://www.youtube.com/watch?v={vid}",
@@ -161,8 +171,14 @@ class TrendDiscoveryEngine:
         return candidates
 
     def _search_via_ytdlp(self, query: str, category: str, limit: int = 5) -> List[Dict[str, Any]]:
-        """Fallback search using yt-dlp ytsearch."""
+        """Fallback search using yt-dlp ytsearch with strict freshness filter."""
         candidates = []
+        
+        # Enforce temporal freshness qualifier in search string
+        fresh_query = query
+        if not any(k in query.lower() for k in ["this week", "today", "latest", "recent"]):
+            fresh_query = f"{query} this week"
+
         ydl_opts = {
             "quiet": True,
             "extract_flat": True,
@@ -173,15 +189,27 @@ class TrendDiscoveryEngine:
         }
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(f"ytsearch{limit}:{query}", download=False)
+                info = ydl.extract_info(f"ytsearch{limit}:{fresh_query}", download=False)
                 for entry in info.get("entries", []):
                     if not entry:
                         continue
                     vid = entry.get("id")
                     if not vid:
                         continue
+
+                    # Strict 72h / 3-day age check if upload_date is provided (YYYYMMDD)
+                    upload_date = entry.get("upload_date") or ""
+                    if upload_date and len(upload_date) == 8:
+                        try:
+                            up_dt = datetime.strptime(upload_date, "%Y%m%d").replace(tzinfo=timezone.utc)
+                            age_days = (datetime.now(timezone.utc) - up_dt).total_seconds() / 86400.0
+                            if age_days > 4.0:
+                                continue  # Reject any video older than 4 days
+                        except Exception:
+                            pass
+
                     view_count = entry.get("view_count") or 0
-                    timestamp = entry.get("upload_date") or ""
+                    timestamp = upload_date
                     velocity = float(view_count) / 24.0 if view_count else 0.0
 
                     candidates.append({
@@ -197,15 +225,18 @@ class TrendDiscoveryEngine:
                         "duration_seconds": float(entry.get("duration") or 0.0)
                     })
         except Exception as e:
-            logger.error(f"yt-dlp search error for '{query}': {e}")
+            logger.error(f"yt-dlp search error for '{fresh_query}': {e}")
         return candidates
 
     def _calculate_velocity(self, view_count: int, published_at_str: str) -> float:
-        """Calculate views per hour since publication."""
+        """Calculate views per hour since publication. Rejects videos older than 72 hours."""
         try:
             pub_dt = datetime.fromisoformat(published_at_str.replace("Z", "+00:00"))
             now_dt = datetime.now(timezone.utc)
             hours = (now_dt - pub_dt).total_seconds() / 3600.0
+            # Strict rejection if older than 72 hours (3 days)
+            if hours > 72.0:
+                return -1.0  # Rejected
             hours = max(hours, 0.5)
             return round(view_count / hours, 2)
         except Exception:
