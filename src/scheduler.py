@@ -23,7 +23,9 @@ from .config import (
     MIN_UPLOAD_SPACING_HOURS,
     DISCOVERY_INTERVAL_HOURS,
     DEFAULT_PRIVACY_STATUS,
-    AUTO_PUBLISH_DEFAULT
+    AUTO_PUBLISH_DEFAULT,
+    OPTIMAL_VIRAL_WINDOWS,
+    ENFORCE_VIRAL_HOURS
 )
 from .storage_manager import purge_temporary_stream_files
 from .db import (
@@ -150,10 +152,10 @@ class AutonomousScheduler:
                 last_slot = datetime.now(timezone.utc)
                 
             for clip in unallocated_clips:
-                next_slot = last_slot + timedelta(hours=MIN_UPLOAD_SPACING_HOURS)
+                next_slot = self._calculate_next_viral_slot(last_slot)
                 enqueue_upload(clip["id"], next_slot.isoformat(), privacy=DEFAULT_PRIVACY_STATUS)
                 last_slot = next_slot
-                logger.info(f"Clip {clip['id']} enqueued for scheduled release at: {next_slot.isoformat()}")
+                logger.info(f"Clip {clip['id']} enqueued for scheduled release at peak viral slot: {next_slot.isoformat()}")
 
         auto_publish = get_setting("auto_publish_enabled", AUTO_PUBLISH_DEFAULT)
         results["auto_publish_enabled"] = auto_publish
@@ -217,11 +219,64 @@ class AutonomousScheduler:
 
         return results
 
+    def _is_in_peak_viral_window(self, now_local: datetime) -> tuple[bool, str]:
+        """
+        Calculates whether the current local time falls inside high-velocity viral viewership windows:
+        1. Slot 1: Midday / Lunch Break (11:30 AM - 2:30 PM EST)
+        2. Slot 2: Afternoon / Commute / After School (4:30 PM - 7:00 PM EST)
+        3. Slot 3: Prime Evening Peak (8:00 PM - 11:00 PM EST)
+        Avoids dead graveyard hours (1:00 AM - 10:00 AM EST) when viewers are asleep.
+        """
+        hour = now_local.hour
+        minute = now_local.minute
+        time_val = hour + (minute / 60.0)
+
+        for slot in OPTIMAL_VIRAL_WINDOWS:
+            if slot["start_hour"] <= time_val <= slot["end_hour"]:
+                return True, f"Active: {slot['name']}"
+
+        # Determine next upcoming window
+        if time_val < 11.5:
+            next_window = "12:00 PM EST (Midday Lunch Surge)"
+        elif time_val < 16.5:
+            next_window = "05:00 PM EST (Afternoon Commute Peak)"
+        elif time_val < 20.0:
+            next_window = "08:30 PM EST (Prime Evening Scroll)"
+        else:
+            next_window = "Tomorrow 12:00 PM EST (Midday Lunch Surge)"
+
+        return False, next_window
+
+    def _calculate_next_viral_slot(self, from_dt: datetime) -> datetime:
+        """
+        Calculates the next optimal viral release slot respecting 4-hour spacing.
+        """
+        from_local = from_dt.astimezone(self.tz)
+        target_slots = [
+            (12, 0),   # 12:00 PM EST
+            (17, 0),   # 05:00 PM EST
+            (20, 30)   # 08:30 PM EST
+        ]
+
+        candidate_dts = []
+        for day_offset in range(0, 3):
+            base_date = (from_local + timedelta(days=day_offset)).date()
+            for h, m in target_slots:
+                slot_dt = datetime(base_date.year, base_date.month, base_date.day, h, m, tzinfo=self.tz)
+                # Must be at least MIN_UPLOAD_SPACING_HOURS after from_dt
+                if (slot_dt - from_local).total_seconds() >= (MIN_UPLOAD_SPACING_HOURS * 3600):
+                    candidate_dts.append(slot_dt)
+
+        if candidate_dts:
+            return min(candidate_dts).astimezone(timezone.utc)
+        return (from_dt + timedelta(hours=MIN_UPLOAD_SPACING_HOURS))
+
     def _check_upload_pacing(self) -> tuple[bool, str]:
         """
         Ensures:
         1. Published today < DAILY_MAX_PUBLISHED_SHORTS (3)
         2. Hours since last upload >= MIN_UPLOAD_SPACING_HOURS (4)
+        3. Current time falls inside high-traffic Viral Window (no dead zone uploads)
         """
         now = datetime.now(timezone.utc)
         published_list = list_published(limit=20)
@@ -244,7 +299,14 @@ class AutonomousScheduler:
             except Exception:
                 pass
 
-        return True, "Upload window open."
+        # 3. Check Peak Viral Engagement Window (America/New_York Time)
+        if ENFORCE_VIRAL_HOURS:
+            now_local = datetime.now(self.tz)
+            is_viral, window_desc = self._is_in_peak_viral_window(now_local)
+            if not is_viral:
+                return False, f"Waiting for Peak Viral Traffic Window (Current: {now_local.strftime('%I:%M %p %Z')}). Next release: {window_desc}."
+
+        return True, "Upload window open (Peak Viral Traffic Active)."
 
     def _select_zigzag_candidate(self, candidates: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """

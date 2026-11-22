@@ -47,6 +47,15 @@ AUTONOMOUS_MODE = True           # Auto-pipeline: Discover -> Clip -> Meme Edit 
 FRESHNESS_WINDOW_DAYS = 5
 FRESHNESS_WINDOW_HOURS = 120.0
 
+# Optimal YouTube Shorts Viral Publishing Windows (America/New_York Time)
+# Targets maximum online audience engagement waves & avoids dead zones (1 AM - 10 AM).
+OPTIMAL_VIRAL_WINDOWS = [
+    {"slot": 1, "name": "Midday Lunch Surge", "start_hour": 11.5, "end_hour": 14.5, "target": "12:00 PM"},
+    {"slot": 2, "name": "Afternoon Commute Peak", "start_hour": 16.5, "end_hour": 19.0, "target": "05:00 PM"},
+    {"slot": 3, "name": "Prime Evening Scroll", "start_hour": 20.0, "end_hour": 23.0, "target": "08:30 PM"}
+]
+ENFORCE_VIRAL_HOURS = os.getenv("ENFORCE_VIRAL_HOURS", "true").lower() == "true"
+
 # Topic Priorities & Dynamic Multi-Genre Weights (Dynamic Real-Time Trend Engine)
 TOPIC_WEIGHTS = {
     "gaming": 0.35,      # Viral streamers (Speed, Kai, Jynxzi, Fanum, Sketch) & trending games (GTA 6, etc.)
