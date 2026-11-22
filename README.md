@@ -75,6 +75,35 @@ Autonomous YouTube Shorts Clipping, Invideo Polish & Scheduled Publishing System
 
 ---
 
+## Quick Start & Installation 🚀
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/SailikNanda/money-glitch.git
+   cd money-glitch
+   ```
+
+2. **Install Python dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+   *(Ensure [FFmpeg](https://ffmpeg.org/download.html) is installed and added to your system PATH).*
+
+3. **Configure Environment:**
+   Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. **Connect Your YouTube Channel:**
+   Place your Google OAuth `client_secrets.json` in the `data/` folder, then launch the studio:
+   ```bash
+   python run_autopilot.py dashboard --port 8501
+   ```
+   Open `http://localhost:8501` in your browser and click **Connect Channel**.
+
+---
+
 ## 2. CLI Usage
 
 ```bash
