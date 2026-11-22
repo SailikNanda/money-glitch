@@ -1,51 +1,200 @@
 <div align="center">
 
-<img src="assets/hero-banner.svg" width="100%" alt="Money Glitch — autonomous YouTube Shorts studio powered by Google Antigravity" />
+<img src="assets/hero-banner.svg" alt="Money Glitch — AI-powered YouTube Shorts automation studio" width="100%" />
 
-<br />
+<br/><br/>
 
-<table><tr><td align="center" width="50%"><img src="assets/money-glitch-logo.svg" width="120" alt="Money Glitch logo" /><br /><b>MONEY GLITCH</b><br /><sub>Autonomous Shorts Studio</sub></td><td align="center" width="50%"><img src="assets/antigravity-logo.svg" width="120" alt="Antigravity logo" /><br /><b>GOOGLE ANTIGRAVITY</b><br /><sub>AI orchestration</sub></td></tr></table>
+<img src="assets/money-glitch-logo.svg" alt="Money Glitch" width="104" />
+&nbsp;&nbsp;&nbsp;&nbsp;
+<img src="assets/antigravity-logo.svg" alt="Google Antigravity" width="104" />
 
-# ⚡ MONEY GLITCH
-### Discover. Clip. Edit. Publish. Repeat.
+<br/><br/>
 
-**An Antigravity-first automation studio for discovering trending videos, turning eligible footage into vertical Shorts, and managing a paced YouTube publishing queue.**
+# MONEY GLITCH
+### THE AUTONOMOUS SHORTS STUDIO
 
-![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Shorts](https://img.shields.io/badge/Shorts-1080×1920%20·%2060FPS-FF0033?style=for-the-badge&logo=youtube&logoColor=white)
-![Antigravity](https://img.shields.io/badge/Powered_by-Google_Antigravity-6366F1?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-14B8A6?style=for-the-badge)
+**Find the moment. Shape the story. Ship the Short.**
 
-[**🚀 Quickstart**](#-launch-in-minutes) · [**✨ Features**](#-what-makes-it-different) · [**🧠 Pipeline**](#-from-trend-to-short) · [**🖥️ Dashboard**](#️-studio-control-center) · [**⚙️ Commands**](#️-command-center)
+A creator-first, Antigravity-powered production pipeline that discovers emerging videos, identifies high-impact moments, edits vertical clips and orchestrates YouTube publishing.
+
+<br/>
+
+[![Antigravity](https://img.shields.io/badge/POWERED%20BY-GOOGLE%20ANTIGRAVITY-7C3AED?style=for-the-badge)](https://antigravity.google/)
+[![Python](https://img.shields.io/badge/BUILT%20WITH-PYTHON-2563EB?style=for-the-badge&logo=python&logoColor=white)](requirements.txt)
+[![YouTube](https://img.shields.io/badge/OUTPUT-YOUTUBE%20SHORTS-FF0033?style=for-the-badge&logo=youtube&logoColor=white)](#-publishing-control)
+[![License](https://img.shields.io/badge/LICENSE-MIT-0F766E?style=for-the-badge)](LICENSE)
+
+<br/>
+
+[**GET STARTED**](#-get-started) &nbsp; • &nbsp; [**EXPLORE FEATURES**](#-the-creative-engine) &nbsp; • &nbsp; [**SEE THE PIPELINE**](#-how-it-works) &nbsp; • &nbsp; [**OPEN STUDIO**](#-your-studio-control-room)
 
 </div>
 
 ---
 
-## ✨ What makes it different
+<div align="center">
 
-| 🔎 DISCOVER | ✂️ CREATE | 🚀 PUBLISH |
-|:---|:---|:---|
-| Searches **24 trend categories** across gaming, cinema, sports and viral culture. | Crops source material to **9:16**, with kinetic captions, zooms and audio treatment. | Uses YouTube OAuth, a persistent SQLite queue and upload pacing controls. |
-| Prioritizes fresh candidates with a **5-day** discovery window. | Targets **1080 × 1920 at 60 FPS** with FFmpeg-based processing. | Configured for **up to 3 uploads/day** with **4-hour spacing**. |
-| Rotates creators and topics to reduce repetition. | Uses scene/action peaks to select short-form moments. | Designed to resume queued work after restarts. |
+## ONE WORKSPACE. THE ENTIRE SHORT-FORM WORKFLOW.
 
-> [!IMPORTANT]
-> This repository documents an **automation workflow**, not a guarantee of unattended setup or successful uploads. Google Cloud permissions, OAuth consent, available source rights, API quotas and your machine's configuration can require manual action.
+*From the first spark of a trend to the final scheduled upload.*
 
-## 🚀 Launch in minutes
+</div>
 
-**Option A — Google Antigravity workflow**
+<table>
+<tr>
+<td width="33%" valign="top" align="center">
+<h3>01 / DISCOVER</h3>
+<strong>Trend intelligence</strong><br/><br/>
+Search across 24 content categories, prioritize fresh momentum and rotate sources to avoid repetitive feeds.
+</td>
+<td width="33%" valign="top" align="center">
+<h3>02 / CREATE</h3>
+<strong>Retention-focused editing</strong><br/><br/>
+Extract standout moments, reframe to 9:16 and add kinetic subtitles, punch-ins and audio treatment.
+</td>
+<td width="33%" valign="top" align="center">
+<h3>03 / DELIVER</h3>
+<strong>Publishing orchestration</strong><br/><br/>
+Connect YouTube via OAuth, manage a persistent queue and apply spacing and daily upload limits.
+</td>
+</tr>
+</table>
 
-Paste the repository URL into your Antigravity workspace and ask it to follow the project instructions:
+<div align="center">
+
+| **24** discovery categories | **120h** freshness window | **9:16** vertical video | **60 FPS** target |
+|:---:|:---:|:---:|:---:|
+| **4h** upload spacing | **3/day** publishing cap | **SQLite** persistence | **FFmpeg** editing |
+
+<sub>Values above describe the repository's documented configuration and targets, not measured performance guarantees.</sub>
+
+</div>
+
+---
+
+## ✦ The creative engine
+
+### 🔭 Trend radar — built for variety
+
+Money Glitch is designed to look beyond a single creator or genre. Its discovery strategy scores recent candidate videos and rotates content to reduce repetition.
+
+| Content universe | Categories | Examples |
+|:---|:---:|:---|
+| 🎮 **Gaming & esports** | 8 | Open-world chaos, FPS clutches, survival, horror, indie discoveries |
+| 🎬 **Film & entertainment** | 5 | Trailers, action sequences, anime, plot twists, soundtrack moments |
+| 🏆 **Sports & adrenaline** | 6 | Football, basketball, combat sports, extreme stunts, motorsport |
+| ⚡ **Internet & culture** | 5 | Tech, animals, rare moments, satisfying restoration, street trivia |
+
+> **Freshness-first discovery:** The documented strategy uses a five-day candidate window, view-velocity scoring and a creator/topic rotation policy. These filters help identify relevant material; they do not establish permission to reuse it.
+
+### ✂️ Edit for the vertical screen
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**THE FRAME**
+
+- 1080 × 1920 vertical output target
+- Facecam / POV + action-oriented framing
+- Subtitle-safe composition
+- FFmpeg-based processing
+
+</td>
+<td width="50%" valign="top">
+
+**THE FINISH**
+
+- 3.5-second pattern-interrupt cadence
+- 1.18× punch-in zoom treatment
+- Kinetic ASS captions with highlighted words
+- Color enhancement and speech-aware music ducking
+
+</td>
+</tr>
+</table>
+
+```text
+╭────────── VERTICAL SHORT ──────────╮
+│                                    │
+│          FACE CAM / POV            │
+│                                    │
+├────────────────────────────────────┤
+│                                    │
+│          THE MAIN MOMENT           │
+│                                    │
+│       action · zoom · energy       │
+│                                    │
+├────────────────────────────────────┤
+│        KINETIC CAPTION ZONE        │
+├────────────────────────────────────┤
+│       PLATFORM-SAFE MARGIN         │
+╰────────────────────────────────────╯
+```
+
+---
+
+## ◈ How it works
+
+<div align="center">
+
+**DISCOVER → FILTER → SELECT → CLIP → POLISH → QUEUE → PUBLISH**
+
+</div>
+
+```mermaid
+flowchart TD
+  A["01 · Trend radar<br/>24 content categories"] --> B["02 · Freshness + velocity<br/>Recent candidate scoring"]
+  B --> C["03 · Creator rotation<br/>Diversified selection"]
+  C --> D["04 · Clip engine<br/>Vertical moment extraction"]
+  D --> E["05 · Retention editor<br/>Subtitles · zoom · audio"]
+  E --> F["06 · Persistent SQLite queue"]
+  F --> G{"07 · Upload guard"}
+  G -->|"Window open"| H["YouTube Data API v3"]
+  G -->|"Wait"| F
+  classDef discover fill:#10233A,stroke:#38BDF8,color:#FFFFFF
+  classDef create fill:#2A173E,stroke:#C084FC,color:#FFFFFF
+  classDef deliver fill:#10352F,stroke:#2DD4BF,color:#FFFFFF
+  class A,B,C discover
+  class D,E create
+  class F,G,H deliver
+```
+
+<details>
+<summary><b>🧩 Explore the pipeline modules</b></summary>
+<br/>
+
+| Module | Responsibility |
+|:---|:---|
+| `src/trend_discovery.py` | Candidate search and discovery |
+| `src/clipping_engine.py` | Moment selection and vertical clipping |
+| `src/retention_editor.py` | Video/audio finishing |
+| `src/scheduler.py` | Pipeline cadence and scheduling |
+| `src/youtube_uploader.py` | YouTube authorization and publishing |
+| `src/dashboard.py` | Local web control surface |
+| `run_autopilot.py` | Master command-line entrypoint |
+
+</details>
+
+---
+
+## 🚀 Get started
+
+### 01 — Launch with Google Antigravity
+
+Open your Antigravity workspace and paste:
 
 ```text
 https://github.com/SailikNanda/money-glitch.git
-Read AGENTS.md and README.md. Set up this studio, verify each dependency,
-and ask for my approval before connecting accounts or publishing.
+
+Read README.md and AGENTS.md. Inspect the environment, install the
+required dependencies, and guide me through YouTube authorization.
+Ask before making account changes or publishing any videos.
 ```
 
-**Option B — Local setup**
+The [agent runbook](AGENTS.md) describes the intended setup flow, including dependencies, Google Cloud OAuth and automation registration. Browser actions and unattended setup depend on the capabilities and permissions of your Antigravity installation.
+
+### 02 — Or run locally
 
 ```bash
 git clone https://github.com/SailikNanda/money-glitch.git
@@ -54,127 +203,142 @@ python -m pip install -r requirements.txt
 python run_autopilot.py dashboard --port 8501
 ```
 
-Open **http://127.0.0.1:8501** to access the local studio. Install **FFmpeg/ffprobe** and configure YouTube Data API v3 OAuth credentials before attempting uploads. See [AGENTS.md](AGENTS.md) for the Antigravity setup runbook and [.env.example](.env.example) for configuration hints.
+**Before publishing:** Install `ffmpeg` and `ffprobe`, enable YouTube Data API v3 in Google Cloud, configure a Desktop OAuth client, and authorize your YouTube channel.
 
-> [!NOTE]
-> You must authorize your YouTube account. Never commit `data/client_secrets.json`, `data/youtube_token.json` or other credentials.
+<div align="center">
 
-## 🧠 From trend to Short
+### LOCAL STUDIO URL
 
-```mermaid
-flowchart LR
-  A["🔎 Trend discovery<br/>24 categories"] --> B["🕒 Freshness & velocity<br/>5-day window"]
-  B --> C["🔀 Creator/topic rotation"]
-  C --> D["✂️ Moment selection<br/>& 9:16 clipping"]
-  D --> E["✨ Retention edit<br/>captions · zoom · audio"]
-  E --> F["📥 SQLite upload queue"]
-  F --> G{"⏱️ Publishing window"}
-  G -->|Allowed| H["▶️ YouTube API upload"]
-  G -->|Wait| F
-  style A fill:#10283b,color:#e2f5ff,stroke:#38bdf8
-  style E fill:#241638,color:#f4e8ff,stroke:#a78bfa
-  style H fill:#102c28,color:#e4fff5,stroke:#2dd4bf
-```
+**http://127.0.0.1:8501**
 
-### 🌍 Discovery coverage
+<sub>The dashboard is available while the local server is running.</sub>
 
-| Area | Categories | Examples |
-|---|---:|---|
-| 🎮 Gaming | 8 | Open-world chaos, esports, survival, horror, indie games |
-| 🎬 Cinema | 5 | Trailers, action, anime, plot twists, soundtracks |
-| 🏆 Sports | 6 | Football, basketball, combat sports, motorsport, stunts |
-| ⚡ Viral | 5 | Robotics, animals, unlikely moments, ASMR, street trivia |
-| **Total** | **24** | Multi-topic discovery, not locked to a single creator |
+</div>
 
-### 🎞️ Editing recipe
+---
 
-```text
-┌────────────── 9:16 SHORT ──────────────┐
-│  FACE CAM / POV                       │
-├───────────────────────────────────────┤
-│                                       │
-│  PRIMARY ACTION / GAMEPLAY            │
-│  Zooms + action-aware framing         │
-│                                       │
-├───────────────────────────────────────┤
-│  KINETIC SUBTITLES                    │
-│  Yellow active-word emphasis         │
-├───────────────────────────────────────┤
-│  PLATFORM UI SAFE AREA                │
-└───────────────────────────────────────┘
-```
+## 🖥 Your studio control room
 
-The documented editing strategy includes **3.5-second pattern-interrupt zooms**, **1.18× punch-ins**, **ASS subtitles**, saturation/contrast adjustments and music ducking beneath speech. Exact output depends on the source and the available processing pipeline.
+A local FastAPI dashboard provides a central view of the production workflow.
 
-## 🖥️ Studio control center
+<table>
+<tr>
+<td width="50%"><strong>🔎 SCOUT</strong><br/>Discover trending candidates</td>
+<td width="50%"><strong>✂️ CLIPPER</strong><br/>Prepare vertical video moments</td>
+</tr>
+<tr>
+<td><strong>🎛️ EDITOR</strong><br/>Apply video and audio finishing</td>
+<td><strong>🧠 DIRECTOR</strong><br/>Coordinate pipeline decisions</td>
+</tr>
+<tr>
+<td><strong>☁️ UPLOADER</strong><br/>Review queue and publishing</td>
+<td><strong>📊 STATUS</strong><br/>Inspect pipeline and stored state</td>
+</tr>
+</table>
 
-The FastAPI dashboard is the control surface for reviewing discovery, clips, the queue and YouTube connection.
+### ⌘ Command palette
 
 ```bash
+# Start the local dashboard
 python run_autopilot.py dashboard --port 8501
+
+# Search for new candidates
+python run_autopilot.py discover
+
+# Clip footage you are permitted to use
+python run_autopilot.py clip --source video.mp4
+
+# Run one pipeline cycle
+python run_autopilot.py cycle
+
+# Start the scheduler while this computer remains on
+python run_autopilot.py daemon
+
+# Inspect status and publishing queue
+python run_autopilot.py status
+
+# Connect YouTube using OAuth
+python run_autopilot.py auth-youtube
 ```
 
-| Studio area | Purpose |
-|---|---|
-| 🔎 Scout | Discover and evaluate candidate videos |
-| ✂️ Clipper | Produce vertical clips |
-| 🎛️ Editing | Add retention-focused visual and audio treatment |
-| 🧠 Brain | Coordinate selection and metadata |
-| ☁️ Uploader | Manage authorization and publishing queue |
+---
 
-## ⚙️ Command center
+## ⏱ Publishing control
 
-| Command | Action |
-|---|---|
-| `python run_autopilot.py discover` | Discover candidate videos |
-| `python run_autopilot.py clip --source video.mp4` | Clip an authorized local source |
-| `python run_autopilot.py cycle` | Run one pipeline iteration |
-| `python run_autopilot.py daemon` | Run the continuous scheduler while the PC is on |
-| `python run_autopilot.py status` | Inspect queue, clips and publishing status |
-| `python run_autopilot.py auth-youtube` | Start YouTube OAuth connection |
-| `python run_autopilot.py dashboard --port 8501` | Open the studio UI |
+<table>
+<tr>
+<td width="50%" valign="top">
 
-### ⏱️ Publishing and persistence
+### Pacing by design
 
-- **Cadence:** up to **3 uploads per day**, with a **4-hour minimum interval** as documented.
-- **Queue:** SQLite stores scheduling, history and pipeline state.
-- **Lifecycle:** daemon execution requires the host PC to remain on; the persisted queue supports recovery after a restart.
-- **Automation:** `scripts/register_antigravity_automation.py` is the repository's Antigravity integration helper.
+**Up to 3 uploads per day** with a **minimum 4-hour spacing window**, as described in the project's configuration.
 
-## 🗂️ Project map
+</td>
+<td width="50%" valign="top">
+
+### Recoverable workflow
+
+**SQLite-backed state** is intended to preserve queue and scheduling data across process restarts.
+
+</td>
+</tr>
+</table>
+
+> [!NOTE]
+> The daemon runs only while its host computer is powered on. The project includes a Windows startup helper and an Antigravity registration script; whether they activate automatically depends on your system configuration.
+
+---
+
+## 🗂 Project structure
 
 ```text
 money-glitch/
-├── .agents/skills/        # Antigravity workspace instructions
-├── assets/                # Studio / Antigravity branding
-├── data/                  # Local state and OAuth files (keep private)
-├── scripts/               # Setup and automation helpers
-├── src/
-│   ├── trend_discovery.py
-│   ├── clipping_engine.py
-│   ├── retention_editor.py
-│   ├── scheduler.py
-│   ├── youtube_uploader.py
-│   └── dashboard.py
-├── templates/             # Dashboard UI
-├── AGENTS.md              # Agent setup/runbook
-├── requirements.txt
-└── run_autopilot.py       # CLI entrypoint
+│
+├── .agents/skills/          Antigravity workspace skill
+├── assets/                  Brand visuals and hero banner
+├── data/                    Local SQLite state and credentials
+├── scripts/                 Setup and startup helpers
+├── src/                     Discovery, clipping, editing, scheduling
+├── templates/               Dashboard interface
+│
+├── AGENTS.md                Automation runbook
+├── README.md                You are here
+├── requirements.txt         Python dependencies
+└── run_autopilot.py          Studio CLI
 ```
 
-## 🛡️ Responsible publishing
+<details>
+<summary><b>🔐 Credentials and security notes</b></summary>
+<br/>
 
-Only clip and upload material you **own, have permission to reuse, or are otherwise legally entitled to use**. Automated editing, subtitles, attribution or adding effects do **not** automatically grant reuse rights or prevent copyright claims. Review each upload for platform policy compliance and accuracy before publishing.
+Use the Google Cloud OAuth flow to authorize YouTube. Keep `data/client_secrets.json`, `data/youtube_token.json`, API keys and any other credentials private. Do not commit secrets to Git. Review account permissions and quota limits before enabling automation.
+
+</details>
+
+<details>
+<summary><b>⚖️ Copyright and platform compliance</b></summary>
+<br/>
+
+Only publish footage you own, have permission to reuse, or are otherwise legally entitled to use. Cropping, captions, effects and attribution do not automatically create reuse rights or prevent copyright claims. Check YouTube policies and review each clip before publishing.
+
+</details>
 
 ---
 
 <div align="center">
 
-### ⚡ From discovery to delivery
-**One studio. Multiple content verticals. A repeatable Shorts pipeline.**
+<img src="assets/money-glitch-logo.svg" alt="Money Glitch" width="76" />
+&nbsp;&nbsp;&nbsp;&nbsp;
+<img src="assets/antigravity-logo.svg" alt="Google Antigravity" width="76" />
 
-<img src="assets/money-glitch-logo.svg" width="72" alt="Money Glitch" /> &nbsp; <img src="assets/antigravity-logo.svg" width="72" alt="Google Antigravity" />
+### MADE FOR THE NEXT GENERATION OF SHORT-FORM CREATORS
 
-<sub>Built for Google Antigravity · Python + FFmpeg + YouTube Data API · MIT License</sub>
+**DISCOVER MORE. CREATE SMARTER. PUBLISH WITH CONTROL.**
+
+<sub>Money Glitch · Google Antigravity workflow · Python · FFmpeg · YouTube Data API</sub>
+
+<br/><br/>
+
+[**BACK TO TOP ↑**](#money-glitch)
 
 </div>
