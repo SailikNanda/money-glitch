@@ -47,6 +47,7 @@ def main():
     p_dash = subparsers.add_parser("dashboard", help="Start the FastAPI web control center")
     p_dash.add_argument("--host", type=str, default="127.0.0.1", help="Host address")
     p_dash.add_argument("--port", type=int, default=8501, help="Port to listen on")
+    p_dash.add_argument("--open", dest="open_browser", action="store_true", help="Automatically open dashboard in web browser")
 
     # Command: status
     p_status = subparsers.add_parser("status", help="Print system status and queue")
@@ -126,6 +127,10 @@ def main():
 
     elif args.command == "dashboard":
         print(f"\n[STARTING] Viral Shorts Autopilot Dashboard on http://{args.host}:{args.port}\n")
+        if getattr(args, "open_browser", False):
+            import threading
+            import webbrowser
+            threading.Timer(1.0, lambda: webbrowser.open(f"http://{args.host}:{args.port}")).start()
         uvicorn.run("src.dashboard:app", host=args.host, port=args.port, reload=False)
 
     else:

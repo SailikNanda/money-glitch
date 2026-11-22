@@ -81,17 +81,18 @@ If `data/client_secrets.json` does NOT already exist, invoke the Antigravity `br
 ---
 
 ### Phase 3: Launch Studio Dashboard & Register Antigravity Automation
-1. Launch the background daemon server:
+1. Launch the background daemon server and auto-open the dashboard UI:
    ```powershell
-   python run_autopilot.py dashboard --port 8501
+   python run_autopilot.py dashboard --port 8501 --open
    ```
+   *(This launches the FastAPI studio and automatically opens `http://127.0.0.1:8501` in the user's default browser so they immediately see the live Studio UI).*
 2. Automatically register this studio in Antigravity's native Automations section:
    ```powershell
    python scripts/register_antigravity_automation.py
    ```
    *(Creates `~/.gemini/config/sidecars/money-glitch-autopilot/sidecar.json` so it appears in the Antigravity UI sidebar under 'Automations').*
 3. Notify the user:
-   > "Studio Dashboard is live at `http://127.0.0.1:8501`, and the studio is registered in your Antigravity **Automations** tab. Please click **[Connect Channel]** in the header once to link your YouTube channel (or approve the Google Sign-In tab). Everything else will run on complete autopilot!"
+   > "Studio Dashboard is live at `http://127.0.0.1:8501` (opened in your browser) and registered in your Antigravity **Automations** tab. Please click **[Connect Channel]** in the header once to link your YouTube channel (or approve the Google Sign-In tab). Everything else will run on complete autopilot!"
 4. Once the user completes the Google Sign-In, `data/youtube_token.json` is generated.
 
 ---
