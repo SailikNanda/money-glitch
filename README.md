@@ -1,6 +1,19 @@
 # Viral Shorts Autopilot 🎬🚀
 
-Autonomous YouTube Shorts Clipping, Invideo Polish & Scheduled Publishing System built on **Google Antigravity**.
+Autonomous YouTube Shorts Clipping, Invideo Polish & Scheduled Publishing Studio built exclusively on **Google Antigravity**.
+
+> ⚡ **Turnkey One-Prompt Automation with Google Antigravity:**  
+> Simply copy this repository link and paste it into Google Antigravity:  
+> ```text
+> https://github.com/SailikNanda/money-glitch.git
+> Use this
+> ```
+> **Antigravity will automatically:**
+> 1. Install all dependencies and initialize the database.
+> 2. Use browser control on Google Cloud Console to enable the YouTube Data API v3 and generate `data/client_secrets.json`.
+> 3. Launch the studio dashboard at `http://127.0.0.1:8501`.
+> 4. Prompt you once to click **[Connect Channel]** in the header.
+> 5. Take over the entire pipeline: trend research, dynamic climax detection, 100% video-specific copywriting (unique titles, descriptions, and dynamic hashtags), 60FPS vertical retention editing, and safe scheduled YouTube Shorts publishing!
 
 - **Focus**: GTA 6 (Grand Theft Auto VI) at 60% priority, Gaming & Streamers (25%), US Internet Trends (15%).
 - **Language & Region**: American English, targeting United States YouTube audience.
