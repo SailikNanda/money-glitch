@@ -290,5 +290,18 @@ def list_published(limit: int = 50) -> List[Dict[str, Any]]:
     conn.close()
     return [dict(r) for r in rows]
 
+def clear_all_data():
+    """Wipes all candidates, clips, queue, and published records to start fresh from zero."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM upload_queue")
+    cursor.execute("DELETE FROM clips")
+    cursor.execute("DELETE FROM candidates")
+    cursor.execute("DELETE FROM published_videos")
+    cursor.execute("UPDATE system_settings SET value = '0' WHERE key = 'consecutive_errors'")
+    cursor.execute("UPDATE system_settings SET value = '0' WHERE key = 'auto_publish_enabled'")
+    conn.commit()
+    conn.close()
+
 # Initialize tables upon module load
 init_db()

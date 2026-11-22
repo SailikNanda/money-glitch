@@ -40,6 +40,7 @@ from .db import (
 from .storage_manager import (
     purge_temporary_stream_files,
     cleanup_published_files,
+    reset_all_data,
     get_storage_stats
 )
 from .scheduler import AutonomousScheduler
@@ -235,12 +236,22 @@ async def get_live_state():
     LIVE_STATE["published_list"] = pub_list
     LIVE_STATE["available_videos"] = available_videos
     
-    # Real Channel Info
-    ch_info = uploader.get_channel_info() if uploader.is_connected() else {
-        "channel_title": "Clivox",
-        "channel_id": "UCk8rHfFBIOh80mBOovlWCwA",
-        "custom_url": "@clivox-era"
-    }
+    # Real Channel Info with Connected status
+    if uploader.is_connected():
+        real_info = uploader.get_channel_info()
+        ch_info = {
+            "connected": True,
+            "channel_title": real_info.get("channel_title") if real_info else "Authenticated Channel",
+            "channel_id": real_info.get("channel_id") if real_info else "",
+            "custom_url": real_info.get("custom_url") if (real_info and real_info.get("custom_url")) else ""
+        }
+    else:
+        ch_info = {
+            "connected": False,
+            "channel_title": "No Channel Connected",
+            "channel_id": "",
+            "custom_url": ""
+        }
     LIVE_STATE["channel_info"] = ch_info
     
     if pub_list:
@@ -348,12 +359,19 @@ async def handle_action(req: ActionRequest, background_tasks: BackgroundTasks):
         background_tasks.add_task(_simulate_visual_production_cycle)
         return {"success": True, "message": "Live upload to YouTube channel Clivox triggered"}
 
-    elif action == "purge_storage":
-        res1 = purge_temporary_stream_files()
-        res2 = cleanup_published_files()
-        total_freed = res1.get("freed_mb", 0) + res2.get("freed_mb", 0)
-        log_event("SYSTEM", f"Storage purged: {total_freed:.2f} MB freed across {res1.get('deleted_count', 0) + res2.get('deleted_count', 0)} files.")
-        return {"success": True, "message": f"Storage purged! Freed {total_freed:.2f} MB disk space.", "stats": get_storage_stats()}
+    elif action in ["purge_storage", "reset_all_data"]:
+        res = reset_all_data()
+        log_event("SYSTEM", f"Hard Reset: Storage cleared to 0.00 MB. Database history wiped to zero.")
+        return {"success": True, "message": "All data and media cleared to 0.00 MB.", "stats": get_storage_stats()}
+
+    elif action == "youtube_logout":
+        success = uploader.logout()
+        log_event("SYSTEM", "YouTube account logged out and token removed. Ready to connect new account.")
+        return {"success": success, "message": "YouTube account logged out successfully."}
+
+    elif action == "auth_youtube":
+        log_event("SYSTEM", "YouTube OAuth setup: Run 'python run_autopilot.py auth-youtube' to connect new channel.")
+        return {"success": True, "message": "To connect a new YouTube channel, run 'python run_autopilot.py auth-youtube'."}
 
     elif action == "toggle_autopublish":
         current = get_setting("auto_publish_enabled", True)

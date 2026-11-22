@@ -86,6 +86,20 @@ class YouTubeUploader:
         logger.info("Successfully connected YouTube channel via OAuth 2.0.")
         return True
 
+    def logout(self) -> bool:
+        """Disconnects current YouTube channel and clears cached OAuth credentials."""
+        self.credentials = None
+        self.youtube = None
+        if YOUTUBE_TOKEN_PATH.exists():
+            try:
+                YOUTUBE_TOKEN_PATH.unlink()
+                logger.info("Removed stored YouTube OAuth token.")
+                return True
+            except Exception as e:
+                logger.error(f"Error removing token file: {e}")
+                return False
+        return True
+
     def get_channel_info(self) -> Optional[Dict[str, Any]]:
         """Confirm connected channel identity before publishing."""
         if not self.is_connected() or not self.youtube:
