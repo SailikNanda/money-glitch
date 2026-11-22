@@ -77,7 +77,11 @@ class YouTubeUploader:
             return False
 
         flow = InstalledAppFlow.from_client_secrets_file(str(YOUTUBE_CLIENT_SECRETS_PATH), SCOPES)
-        creds = flow.run_local_server(port=8080)
+        try:
+            creds = flow.run_local_server(port=8080, open_browser=True)
+        except Exception as e:
+            logger.warning(f"Port 8080 unavailable ({e}), attempting dynamic port...")
+            creds = flow.run_local_server(port=0, open_browser=True)
         with open(YOUTUBE_TOKEN_PATH, "w", encoding="utf-8") as f:
             f.write(creds.to_json())
 

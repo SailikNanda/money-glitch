@@ -25,7 +25,8 @@ from .config import (
     SCHEDULING_TIMEZONE,
     TOPIC_WEIGHTS,
     DAILY_MAX_PUBLISHED_SHORTS,
-    MIN_UPLOAD_SPACING_HOURS
+    MIN_UPLOAD_SPACING_HOURS,
+    YOUTUBE_CLIENT_SECRETS_PATH
 )
 from .db import (
     get_setting,
@@ -369,9 +370,28 @@ async def handle_action(req: ActionRequest, background_tasks: BackgroundTasks):
         log_event("SYSTEM", "YouTube account logged out and token removed. Ready to connect new account.")
         return {"success": success, "message": "YouTube account logged out successfully."}
 
-    elif action == "auth_youtube":
-        log_event("SYSTEM", "YouTube OAuth setup: Run 'python run_autopilot.py auth-youtube' to connect new channel.")
-        return {"success": True, "message": "To connect a new YouTube channel, run 'python run_autopilot.py auth-youtube'."}
+    elif action in ["auth_youtube", "connect_channel", "youtube_login"]:
+        if not YOUTUBE_CLIENT_SECRETS_PATH.exists():
+            return {"success": False, "message": "data/client_secrets.json not found. Please place OAuth client credentials in data/ folder."}
+
+        def _launch_browser_oauth():
+            try:
+                log_event("SYSTEM", "Opening browser window for Google Account & Channel authorization...")
+                ok = uploader.authenticate_interactive()
+                if ok:
+                    info = uploader.get_channel_info()
+                    title = info.get("channel_title") if info else "Authorized Channel"
+                    log_event("SYSTEM", f"Channel authorization completed: {title}")
+                else:
+                    log_event("SYSTEM", "YouTube authentication cancelled or failed.")
+            except Exception as e:
+                log_event("SYSTEM", f"OAuth flow error: {str(e)}")
+
+        background_tasks.add_task(_launch_browser_oauth)
+        return {
+            "success": True, 
+            "message": "Opening browser for Google Login! Please select your YouTube channel and click Allow."
+        }
 
     elif action == "toggle_autopublish":
         current = get_setting("auto_publish_enabled", True)
