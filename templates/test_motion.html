@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body style="background:#111; color:#fff; font-family:sans-serif; padding:40px;">
+  <div id="root"></div>
+  <script type="text/babel">
+    const { motion } = window.Motion;
+    function App() {
+      return (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+          style={{ padding: 20, background: '#222', borderRadius: 12, border: '1px solid #333' }}
+        >
+          <motion.h1 whileHover={{ scale: 1.05 }} style={{ cursor: 'pointer', margin: 0, color: '#38bdf8' }}>
+            Framer Motion in Browser is Running!
+          </motion.h1>
+          <p style={{ color: '#aaa' }}>React 18 + Babel Standalone + Framer Motion 10</p>
+        </motion.div>
+      );
+    }
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

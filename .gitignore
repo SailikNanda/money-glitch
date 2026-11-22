@@ -1,0 +1,68 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment Variables & API Secrets (CRITICAL - NEVER COMMIT)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+token.json
+
+# Google OAuth Credentials & Secrets
+client_secrets.json
+youtube_token.json
+data/client_secrets.json
+data/youtube_token.json
+
+# Local SQLite Databases & Working State
+*.db
+*.sqlite
+*.sqlite3
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+
+# Heavy Media Files & Video Dumps (Keep Git Repository Lean)
+clips/
+exports/
+scratch/
+downloads/
+*.mp4
+*.webm
+*.mkv
+*.avi
+*.mov
+*.flv
+*.wav
+*.mp3
+*.tmp
+*.log
+
+# Diagnostic & Test Frames
+*.jpg
+*.jpeg
+*.png
+!assets/*.png
+!assets/*.jpg
+
+# IDE & OS Metadata
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+.gemini/

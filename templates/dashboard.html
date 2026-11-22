@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Money Glitch — Autonomous Multi-Agent Studio</title>
+  
+  <!-- Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18, ReactDOM, Framer Motion 10, Babel Standalone -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* Dark Obsidian Liquid Glass Single-Viewport System */
+    :root {
+      --bg-canvas: #080c14;
+      --glass-panel: rgba(15, 23, 42, 0.75);
+      --glass-card: rgba(18, 28, 51, 0.65);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-border-highlight: rgba(255, 255, 255, 0.16);
+      --glass-shadow: 0 16px 40px -15px rgba(0, 0, 0, 0.6);
+      --glass-inner-light: inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    html, body {
+      height: 100vh;
+      max-height: 100vh;
+      overflow: hidden;
+      background-color: var(--bg-canvas);
+      color: #f1f5f9;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Ambient Liquid Mesh Background Glows */
+    .ambient-mesh {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .ambient-orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(100px);
+      opacity: 0.30;
+      animation: floatOrb 24s ease-in-out infinite alternate;
+    }
+
+    .orb-1 {
+      top: -10%;
+      left: 10%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.35) 0%, rgba(99, 102, 241, 0) 70%);
+      animation-duration: 20s;
+    }
+
+    .orb-2 {
+      top: 20%;
+      right: -5%;
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(14, 165, 233, 0.28) 0%, rgba(14, 165, 233, 0) 70%);
+      animation-duration: 25s;
+    }
+
+    .orb-3 {
+      bottom: -10%;
+      left: 30%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(244, 63, 94, 0.20) 0%, rgba(244, 63, 94, 0) 70%);
+      animation-duration: 28s;
+    }
+
+    @keyframes floatOrb {
+      0% { transform: translate(0px, 0px) scale(1); }
+      50% { transform: translate(30px, -20px) scale(1.06); }
+      100% { transform: translate(-25px, 25px) scale(0.96); }
+    }
+
+    /* Liquid Glass Panels */
+    .liquid-glass {
+      background: var(--glass-panel);
+      backdrop-filter: blur(24px) saturate(190%);
+      -webkit-backdrop-filter: blur(24px) saturate(190%);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-highlight);
+      box-shadow: var(--glass-shadow), var(--glass-inner-light);
+      border-radius: 16px;
+    }
+
+    .liquid-glass-card {
+      background: var(--glass-card);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+    }
+
+    /* Buttons */
+    .liquid-btn {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      color: #e2e8f0;
+      box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.3);
+      border-radius: 9999px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .liquid-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+
+    .liquid-btn-primary {
+      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #4338ca 100%);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-top: 1px solid rgba(255, 255, 255, 0.45);
+      box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.45);
+      border-radius: 9999px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .liquid-btn-primary:hover {
+      background: linear-gradient(135deg, #4338ca 0%, #4f46e5 50%, #3730a3 100%);
+      transform: translateY(-1px);
+    }
+
+    .liquid-btn-emerald {
+      background: linear-gradient(135deg, #059669 0%, #10b981 50%, #047857 100%);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-top: 1px solid rgba(255, 255, 255, 0.45);
+      box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.4);
+      border-radius: 9999px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .glass-input {
+      background: rgba(11, 18, 33, 0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #f1f5f9;
+      border-radius: 10px;
+    }
+    .glass-input:focus {
+      background: rgba(15, 23, 42, 0.95);
+      border-color: #6366f1;
+      outline: none;
+    }
+
+    /* Custom Scrollbar for inner components */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="p-2 sm:p-2.5 antialiased selection:bg-indigo-600 selection:text-white flex flex-col h-screen max-h-screen">
+  <!-- Ambient Liquid Glows -->
+  <div class="ambient-mesh">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+  </div>
+
+  <div id="root" class="h-full flex flex-col min-h-0"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+    const { motion, AnimatePresence } = window.Motion;
+
+    function App() {
+      const [liveState, setLiveState] = useState(null);
+      const [candidates, setCandidates] = useState([]);
+      const [clips, setClips] = useState([]);
+      const [queue, setQueue] = useState([]);
+      const [published, setPublished] = useState([]);
+      const [selectedVideo, setSelectedVideo] = useState("clip_1_ULTRA_MEME_SATURATED.mp4");
+      const [isMuted, setIsMuted] = useState(true);
+      const [isShaking, setIsShaking] = useState(false);
+      const [showRadarModal, setShowRadarModal] = useState(false);
+      const [actionLoading, setActionLoading] = useState(false);
+      const [toastMsg, setToastMsg] = useState(null);
+      const [activeTab, setActiveTab] = useState('published');
+
+      // Custom Prompt State (Intelligent Dynamic Trend Engine)
+      const [promptText, setPromptText] = useState("Scan #1 viral breakout trends dynamically. If gaming/streamer: apply clean 60FPS split-screen facecam, focused scream zoom, and audio ducking without random memes. If movie/cinema: apply cinematic soundtrack, high-contrast grade, and epic trailer climax pacing.");
+      const [topicFocus, setTopicFocus] = useState("dynamic_trends");
+
+      const videoRef = useRef(null);
+
+      // Fetch live real data
+      const refreshData = async () => {
+        try {
+          const res = await fetch('/api/live_state');
+          if (res.ok) {
+            const data = await res.json();
+            setLiveState(data);
+            if (data.custom_prompt) setPromptText(data.custom_prompt);
+            if (data.topic_focus) setTopicFocus(data.topic_focus);
+            if (data.video_file && !selectedVideo) {
+              setSelectedVideo(data.video_file);
+            }
+          }
+        } catch (e) {
+          console.error("Live state poll error:", e);
+        }
+      };
+
+      const fetchExtendedData = async () => {
+        try {
+          const [candRes, clipRes, queueRes, pubRes] = await Promise.all([
+            fetch('/api/candidates'),
+            fetch('/api/clips'),
+            fetch('/api/queue'),
+            fetch('/api/published')
+          ]);
+          if (candRes.ok) setCandidates(await candRes.json());
+          if (clipRes.ok) setClips(await clipRes.json());
+          if (queueRes.ok) setQueue(await queueRes.json());
+          if (pubRes.ok) setPublished(await pubRes.json());
+        } catch (e) {
+          console.error("Extended data error:", e);
+        }
+      };
+
+      useEffect(() => {
+        refreshData();
+        fetchExtendedData();
+        const interval = setInterval(refreshData, 2000);
+        return () => clearInterval(interval);
+      }, []);
+
+      const triggerAction = async (actionName, payload = {}) => {
+        setActionLoading(true);
+        try {
+          const res = await fetch('/api/action', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: actionName, ...payload })
+          });
+          const result = await res.json();
+          setToastMsg(result.message || "Action executed successfully");
+          setTimeout(() => setToastMsg(null), 3500);
+          refreshData();
+          fetchExtendedData();
+        } catch (e) {
+          setToastMsg("Execution failed: " + e.message);
+          setTimeout(() => setToastMsg(null), 3500);
+        } finally {
+          setActionLoading(false);
+        }
+      };
+
+      const savePromptDirection = () => {
+        triggerAction("save_prompt", { notes: promptText, category: topicFocus });
+      };
+
+      const toggleSound = () => {
+        if (videoRef.current) {
+          videoRef.current.muted = !videoRef.current.muted;
+          setIsMuted(videoRef.current.muted);
+        }
+      };
+
+      const replayVideo = () => {
+        if (videoRef.current) {
+          videoRef.current.currentTime = 0;
+          videoRef.current.play();
+        }
+      };
+
+      const testShake = () => {
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 900);
+      };
+
+      // Real Data Calculations
+      const channelTitle = liveState?.channel_info?.channel_title || "Clivox";
+      const channelId = liveState?.channel_info?.channel_id || "UCk8rHfFBIOh80mBOovlWCwA";
+      const channelHandle = liveState?.channel_info?.custom_url || "@clivox-era";
+      const totalCandidatesCount = liveState?.total_candidates || candidates.length || 50;
+      const totalClipsCount = liveState?.total_clips || clips.length || 8;
+      const totalQueueCount = liveState?.total_queue || queue.length || 8;
+      const publishedToday = liveState?.published_today ?? 1;
+      const isParallelActive = liveState?.is_active || false;
+      const parallelProgress = liveState?.progress || 0;
+      const storageMb = liveState?.storage_stats?.clips_storage_mb || "387.67";
+
+      // Real Virality Scores from latest clip
+      const realVirality = liveState?.virality_score || 93.0;
+      const realHook = liveState?.hook_quality || 92.0;
+
+      const agents = liveState?.agents || {
+        scout: { name: "Agent Scout", role: "Stream Radar", status: "idle", task: "50 Streams in Radar | Top: IShowSpeed" },
+        clipper: { name: "Agent Clipper", role: "CV Split & Crop", status: "idle", task: "1080x1920 @ 60 FPS | Slicing 9:16 Split" },
+        meme: { name: "Agent Meme VFX", role: "Hard Edit & SFX", status: "idle", task: "Vine Boom + Wasted + Phonk Ducking (-40%)" },
+        antigravity: { name: "Antigravity AI (Brain)", role: "Autonomous Director & LLM", status: "idle", task: "Autonomous Director & LLM | Hook: 94.0" },
+        uploader: { name: "Agent Clivox", role: "YouTube Dispatcher", status: "idle", task: "Channel Clivox: 1/3 Today | 4h Spacing Lock" }
+      };
+
+      return (
+        <div className="h-full flex flex-col space-y-2 max-w-[1720px] mx-auto w-full">
+          {/* Toast Notification */}
+          <AnimatePresence>
+            {toastMsg && (
+              <motion.div 
+                initial={{ opacity: 0, y: -15, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -15, scale: 0.95 }}
+                className="fixed top-4 right-4 z-50 px-4 py-2.5 bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-2xl backdrop-blur-xl border border-slate-700 flex items-center gap-2.5"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>{toastMsg}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* 1. Header Bar (Single-Viewport Compact: ~48px) */}
+          <header className="liquid-glass px-3 py-2 flex items-center justify-between gap-3 shrink-0">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-sky-400 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 border border-white/20">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-sm sm:text-base font-black tracking-tight text-white">
+                  MONEY GLITCH <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-300">STUDIO</span>
+                </h1>
+                <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-indigo-500/15 text-indigo-300 rounded-full border border-indigo-500/30">
+                  DIRECTED BY ANTIGRAVITY AI
+                </span>
+              </div>
+            </div>
+
+            {/* Header Actions & Live Status */}
+            <div className="flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/80 border border-slate-700/80">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="font-bold text-slate-300 text-[11px]">{channelTitle} ({channelHandle})</span>
+                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  {publishedToday}/3 Published
+                </span>
+              </div>
+
+              {/* Clean Storage Button */}
+              <button 
+                onClick={() => triggerAction("purge_storage")}
+                disabled={actionLoading}
+                className="liquid-btn px-2.5 py-1 text-[11px] font-bold flex items-center gap-1 text-slate-300 hover:text-white"
+                title="Auto-delete raw stream chunks and keep storage clean"
+              >
+                <svg className="w-3 h-3 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Clean ({storageMb} MB)</span>
+              </button>
+
+              {/* Trigger Swarm */}
+              <button 
+                onClick={() => triggerAction("run_cycle")}
+                disabled={actionLoading}
+                className="liquid-btn-primary px-3 py-1 text-[11px] font-bold flex items-center gap-1.5"
+              >
+                <svg className={`w-3 h-3 ${isParallelActive ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span>{isParallelActive ? `Swarm (${parallelProgress}%)` : "Trigger Swarm"}</span>
+              </button>
+
+              {/* Direct Upload */}
+              <button 
+                onClick={() => triggerAction("trigger_actual_upload")}
+                disabled={actionLoading}
+                className="liquid-btn-emerald px-3 py-1 text-[11px] font-bold flex items-center gap-1.5"
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <span>Upload to Clivox</span>
+              </button>
+            </div>
+          </header>
+
+          {/* 2. Main Single-Viewport 3-Column Studio Grid (100vh Fill, Zero Scroll) */}
+          <main className="grid grid-cols-12 gap-2.5 flex-1 min-h-0 items-stretch">
+            
+            {/* ============================================================== */}
+            {/* COLUMN 1 (LEFT - 3 COLS): COMPACT 9:16 SMARTPHONE SHOWCASE     */}
+            {/* ============================================================== */}
+            <section className="col-span-3 liquid-glass p-2.5 flex flex-col justify-between overflow-hidden">
+              {/* Header & Controls */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between border-b border-slate-700/60 pb-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+                    9:16 VERTICAL SHOWCASE
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button 
+                      onClick={toggleSound}
+                      className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-bold text-slate-300 hover:text-white border border-slate-700"
+                    >
+                      {isMuted ? "Unmute" : "Sound ON"}
+                    </button>
+                    <button 
+                      onClick={replayVideo}
+                      className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-bold text-slate-300 hover:text-white border border-slate-700"
+                    >
+                      ↻
+                    </button>
+                  </div>
+                </div>
+
+                {/* Video Switcher Dropdown */}
+                <select 
+                  value={selectedVideo}
+                  onChange={(e) => setSelectedVideo(e.target.value)}
+                  className="w-full px-2 py-1 text-[11px] font-semibold rounded-lg bg-slate-900 border border-slate-700 text-slate-200"
+                >
+                  <option value="clip_1_ULTRA_MEME_SATURATED.mp4">clip_1_ULTRA_MEME (Speed GTA 6 Climax)</option>
+                  <option value="short_35KDnej1hlI_1_5s.mp4">short_35KDnej1hlI (He Broke GTA 6)</option>
+                  <option value="short_G3KoTo4ozEw_2_35s.mp4">short_G3KoTo4ozEw (Wait Till The End)</option>
+                  <option value="speed_gta6_pro_edit.mp4">speed_gta6_pro_edit (Facecam 60FPS)</option>
+                </select>
+              </div>
+
+              {/* Compact Smartphone Mockup (Fits in viewport) */}
+              <div className="relative mx-auto w-full max-w-[210px] aspect-[9/16] rounded-[24px] bg-black p-1.5 shadow-xl border-2 border-slate-800 my-1 overflow-hidden">
+                <div className={`w-full h-full rounded-[18px] overflow-hidden bg-black relative ${isShaking ? 'animate-bounce' : ''}`}>
+                  <video
+                    ref={videoRef}
+                    key={selectedVideo}
+                    src={`/video/${selectedVideo}`}
+                    autoPlay
+                    loop
+                    muted={isMuted}
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Climax Tag */}
+                  <div className="absolute top-4 left-2 right-2 pointer-events-none">
+                    <div className="bg-yellow-400 text-black font-black text-[8px] px-1.5 py-0.2 rounded text-center uppercase">
+                      WAIT TILL THE END
+                    </div>
+                  </div>
+                  {/* Hook text */}
+                  <div className="absolute bottom-2 left-1.5 right-1.5 pointer-events-none">
+                    <div className="bg-black/85 text-white text-[8px] p-1 rounded border border-white/20 text-center font-bold truncate">
+                      {liveState?.current_clip_title || "HE ACTUALLY BROKE GTA 6!"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Credentials & Shake Button */}
+              <div className="space-y-1 text-[10px] font-mono border-t border-slate-700/60 pt-1.5">
+                <div className="flex justify-between text-slate-400">
+                  <span>Channel:</span>
+                  <span className="font-bold text-white truncate max-w-[120px]">{channelTitle} ({channelHandle})</span>
+                </div>
+                <div className="flex justify-between text-slate-400">
+                  <span>Pacing Guard:</span>
+                  <span className="font-bold text-emerald-400">4h Safe Lock Active</span>
+                </div>
+                <button 
+                  onClick={testShake}
+                  className="liquid-btn w-full py-1 text-[10px] font-bold text-rose-300 hover:text-white"
+                >
+                  Test Screen Shake Effect
+                </button>
+              </div>
+            </section>
+
+            {/* ============================================================== */}
+            {/* COLUMN 2 (CENTER - 6 COLS): TIMELINE & 5 PARALLEL AGENTS       */}
+            {/* ============================================================== */}
+            <section className="col-span-6 flex flex-col justify-between space-y-2 h-full min-h-0">
+              
+              {/* NLE Timeline with 5 Autonomous Moving Cursors */}
+              <div className="liquid-glass p-2.5 space-y-1.5 flex-1 flex flex-col justify-between min-h-0">
+                <div className="flex items-center justify-between border-b border-slate-700/60 pb-1 shrink-0">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-200">
+                      MULTI-TRACK TIMELINE & 5 AUTONOMOUS CURSORS
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] font-mono text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/30 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      LIVE DRAG & EDIT ACTIVE
+                    </span>
+                    <span className="text-[9px] font-mono text-cyan-400 font-bold bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/30">
+                      5 THREADS CONCURRENT
+                    </span>
+                  </div>
+                </div>
+
+                {/* Timeline Ruler */}
+                <div className="h-5 bg-slate-900/90 rounded px-2 flex items-center justify-between text-[8px] font-mono text-slate-500 border border-slate-800 shrink-0">
+                  <span>00:00s</span>
+                  <span>00:05s</span>
+                  <span className="text-amber-400 font-bold">00:14s (CLIMAX)</span>
+                  <span>00:22s (WASTED)</span>
+                  <span>00:30s</span>
+                  <span>00:35s</span>
+                </div>
+
+                {/* The 5 Tracks with Cursors Directly On Them */}
+                <div className="relative bg-slate-950/90 rounded-lg p-1.5 space-y-1.5 border border-slate-800 flex-1 flex flex-col justify-around overflow-hidden">
+                  
+                  {/* Track 1: Scout */}
+                  <div className="flex items-center gap-2 h-7 relative">
+                    <span className="w-16 text-[8px] font-mono text-cyan-400 font-bold shrink-0">T1: SCOUT</span>
+                    <div className="h-full flex-1 bg-slate-900/90 rounded border border-slate-800 relative flex items-center px-1 overflow-visible">
+                      <motion.div 
+                        animate={{ 
+                          width: ["85%", "85%", "85%", "56%", "68%", "68%", "85%"] 
+                        }}
+                        transition={{ repeat: Infinity, duration: 8, ease: "easeInOut", times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
+                        className="h-[85%] bg-cyan-950/40 border border-cyan-500/50 rounded flex items-center justify-between px-2 text-[8px] font-mono text-cyan-200 relative overflow-hidden"
+                      >
+                        <span className="truncate">IShowSpeed_GTA6_Stream_37M_1080x1920.mp4</span>
+                        
+                        {/* Live Dynamic Trim Indicator */}
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className="text-[7px] bg-cyan-500/20 text-cyan-300 px-1 rounded border border-cyan-500/30">
+                            Trim: 00:05 - 00:25s
+                          </span>
+                          {/* Visual trim handle that Scout physically grabs */}
+                          <motion.div 
+                            animate={{ 
+                              backgroundColor: ["rgba(6,182,212,0.3)", "rgba(6,182,212,0.3)", "rgba(6,182,212,1)", "rgba(6,182,212,1)", "rgba(6,182,212,1)", "rgba(6,182,212,0.3)", "rgba(6,182,212,0.3)"],
+                              scaleY: [1, 1, 1.3, 1.3, 1.3, 1, 1]
+                            }}
+                            transition={{ repeat: Infinity, duration: 8, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
+                            className="w-1.5 h-4 rounded-sm bg-cyan-400"
+                          />
+                        </div>
+                      </motion.div>
+
+                      {/* Scout Cursor directly on T1 with Real Drag Action */}
+                      <motion.div
+                        className="absolute z-30 pointer-events-none flex items-center gap-1.5 -top-1"
+                        animate={{ 
+                          x: [40, 270, 270, 180, 215, 215, 40],
+                          y: [0, 0, 1, 0, 0, 0, 0]
+                        }}
+                        transition={{ repeat: Infinity, duration: 8, ease: "easeInOut", times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
+                      >
+                        {/* Click Pulse when grabbing handle */}
+                        <motion.div 
+                          animate={{ scale: [0, 0, 1.8, 0, 0, 0, 0], opacity: [0, 0, 0.9, 0, 0, 0, 0] }}
+                          transition={{ repeat: Infinity, duration: 8, times: [0, 0.24, 0.30, 0.35, 0.72, 0.88, 1.0] }}
+                          className="absolute -left-1 -top-1 w-6 h-6 rounded-full border-2 border-cyan-400 bg-cyan-400/30 pointer-events-none"
+                        />
+                        
+                        <svg className="w-3.5 h-3.5 text-cyan-400 drop-shadow-[0_2px_4px_rgba(6,182,212,0.8)]" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M4 2l16 16-6.5.5-3.5 5.5-2.5-1 3.5-5.5L4 17V2z"/>
+                        </svg>
+                        
+                        <div className="flex flex-col">
+                          <span className="px-1.5 py-0.2 text-[7px] font-black uppercase bg-cyan-400 text-black rounded font-mono shadow-md whitespace-nowrap">
+                            Scout
+                          </span>
+                          {/* Live Action Tooltip */}
+                          <motion.span 
+                            animate={{ opacity: [0, 0, 1, 1, 1, 0, 0], scale: [0.8, 0.8, 1, 1, 1, 0.8, 0.8] }}
+                            transition={{ repeat: Infinity, duration: 8, times: [0, 0.22, 0.28, 0.60, 0.72, 0.80, 1.0] }}
+                            className="text-[6.5px] font-bold text-cyan-200 bg-cyan-950/90 px-1 rounded border border-cyan-500/60 shadow whitespace-nowrap mt-0.5"
+                          >
+                            Trimming: 00:25s
+                          </motion.span>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </div>
+
+                  {/* Track 2: Clipper */}
+                  <div className="flex items-center gap-2 h-7 relative">
+                    <span className="w-16 text-[8px] font-mono text-violet-400 font-bold shrink-0">T2: CLIPPER</span>
+                    <div className="h-full flex-1 bg-slate-900/90 rounded border border-slate-800 relative flex items-center px-1 overflow-visible">
+                      <motion.div 
+                        animate={{ 
+                          x: [0, 0, 0, 80, 110, 110, 0],
+                          borderColor: ["rgba(168,85,247,0.4)", "rgba(168,85,247,0.4)", "rgba(168,85,247,1)", "rgba(168,85,247,1)", "rgba(168,85,247,1)", "rgba(168,85,247,0.4)", "rgba(168,85,247,0.4)"]
+                        }}
+                        transition={{ repeat: Infinity, duration: 8.5, ease: "easeInOut", delay: 0.6, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
+                        className="h-[85%] bg-violet-950/40 border rounded flex items-center justify-between px-2 text-[8px] font-mono text-violet-200 w-[55%] relative"
+                      >
+                        <span className="truncate">Facecam_Panel_Top_0_60_Detect.h264</span>
+                        <span className="text-[7px] bg-violet-500/20 text-violet-300 px-1 rounded border border-violet-500/30 shrink-0">
+                          Split @ 00:14s
+                        </span>
+                      </motion.div>
+
+                      {/* Clipper Cursor directly on T2 with Real Drag Action */}
+                      <motion.div
+                        className="absolute z-30 pointer-events-none flex items-center gap-1.5 -top-1"
+                        animate={{ 
+                          x: [30, 80, 80, 160, 190, 190, 30],
+                          y: [0, 0, 1, 0, 0, 0, 0]
+                        }}
+                        transition={{ repeat: Infinity, duration: 8.5, ease: "easeInOut", delay: 0.6, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
+                      >
+                        {/* Click Pulse when grabbing block */}
+                        <motion.div 
+                          animate={{ scale: [0, 0, 1.8, 0, 0, 0, 0], opacity: [0, 0, 0.9, 0, 0, 0, 0] }}
+                          transition={{ repeat: Infinity, duration: 8.5, delay: 0.6, times: [0, 0.24, 0.30, 0.35, 0.72, 0.88, 1.0] }}
+                          className="absolute -left-1 -top-1 w-6 h-6 rounded-full border-2 border-violet-400 bg-violet-400/30 pointer-events-none"
+                        />
+                        
+                        <svg className="w-3.5 h-3.5 text-violet-400 drop-shadow-[0_2px_4px_rgba(168,85,247,0.8)]" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M4 2l16 16-6.5.5-3.5 5.5-2.5-1 3.5-5.5L4 17V2z"/>
+                        </svg>
+                        
+                        <div className="flex flex-col">
+                          <span className="px-1.5 py-0.2 text-[7px] font-black uppercase bg-violet-500 text-white rounded font-mono shadow-md whitespace-nowrap">
+                            Clipper
+                          </span>
+                          <motion.span 
+                            animate={{ opacity: [0, 0, 1, 1, 1, 0, 0] }}
+                            transition={{ repeat: Infinity, duration: 8.5, delay: 0.6, times: [0, 0.22, 0.28, 0.60, 0.72, 0.80, 1.0] }}
+                            className="text-[6.5px] font-bold text-violet-200 bg-violet-950/90 px-1 rounded border border-violet-500/60 shadow whitespace-nowrap mt-0.5"
+                          >
+                            Aligning Climax
+                          </motion.span>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </div>
+
+                  {/* Track 3: Meme VFX */}
+                  <div className="flex items-center gap-2 h-7 relative">
+                    <span className="w-16 text-[8px] font-mono text-rose-400 font-bold shrink-0">T3: MEME VFX</span>
+                    <div className="h-full flex-1 bg-slate-900/90 rounded border border-slate-800 relative flex items-center gap-2 px-1 overflow-visible">
+                      <div className="h-[85%] bg-rose-950/50 border border-rose-500/60 rounded px-1.5 flex items-center text-[7px] font-mono text-rose-200">
+                        Vine_Boom.wav (00:03s)
+                      </div>
+                      
+                      {/* Dragged Shake FX block */}
+                      <motion.div 
+                        animate={{ 
+                          x: [0, 0, 0, 90, 125, 125, 0],
+                          rotate: [0, 0, -2, 2, 0, 0, 0],
+                          boxShadow: ["none", "none", "0 0 10px rgba(239,68,68,0.8)", "0 0 10px rgba(239,68,68,0.8)", "none", "none", "none"]
+                        }}
+                        transition={{ repeat: Infinity, duration: 7, ease: "easeInOut", delay: 1.2, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
+                        className="h-[85%] bg-red-950/60 border border-red-500/70 rounded px-2 flex items-center text-[7px] font-mono text-red-200 relative ml-4"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-400 mr-1 animate-pulse"></span>
+                        Wasted_Screen_Shake.fx (00:22s)
+                      </motion.div>
+
+                      {/* Meme VFX Cursor directly on T3 with Real Drag Action */}
+                      <motion.div
+                        className="absolute z-30 pointer-events-none flex items-center gap-1.5 -top-1"
+                        animate={{ 
+                          x: [15, 60, 60, 150, 185, 185, 15],
+                          y: [0, 0, 1, 0, 0, 0, 0]
+                        }}
+                        transition={{ repeat: Infinity, duration: 7, ease: "easeInOut", delay: 1.2, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
+                      >
+                        {/* Click Pulse when grabbing block */}
+                        <motion.div 
+                          animate={{ scale: [0, 0, 1.8, 0, 0, 0, 0], opacity: [0, 0, 0.9, 0, 0, 0, 0] }}
+                          transition={{ repeat: Infinity, duration: 7, delay: 1.2, times: [0, 0.24, 0.30, 0.35, 0.72, 0.88, 1.0] }}
+                          className="absolute -left-1 -top-1 w-6 h-6 rounded-full border-2 border-rose-400 bg-rose-400/30 pointer-events-none"
+                        />
+                        
+                        <svg className="w-3.5 h-3.5 text-rose-400 drop-shadow-[0_2px_4px_rgba(244,63,94,0.8)]" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M4 2l16 16-6.5.5-3.5 5.5-2.5-1 3.5-5.5L4 17V2z"/>
+                        </svg>
+                        
+                        <div className="flex flex-col">
+                          <span className="px-1.5 py-0.2 text-[7px] font-black uppercase bg-rose-500 text-white rounded font-mono shadow-md whitespace-nowrap">
+                            Meme VFX
+                          </span>
+                          <motion.span 
+                            animate={{ opacity: [0, 0, 1, 1, 1, 0, 0] }}
+                            transition={{ repeat: Infinity, duration: 7, delay: 1.2, times: [0, 0.22, 0.28, 0.60, 0.72, 0.80, 1.0] }}
+                            className="text-[6.5px] font-bold text-rose-200 bg-rose-950/90 px-1 rounded border border-rose-500/60 shadow whitespace-nowrap mt-0.5"
+                          >
+                            Placing Shake.fx
+                          </motion.span>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </div>
+
+                  {/* Track 4: Clivox Dispatch */}
+                  <div className="flex items-center gap-2 h-7 relative">
+                    <span className="w-16 text-[8px] font-mono text-emerald-400 font-bold shrink-0">T4: CLIVOX</span>
+                    <div className="h-full flex-1 bg-slate-900/90 rounded border border-slate-800 relative flex items-center px-1 overflow-visible">
+                      <div className="h-[85%] bg-emerald-950/40 border border-emerald-500/50 rounded flex items-center justify-between px-2 text-[8px] font-mono text-emerald-300 w-full relative overflow-hidden">
+                        <div className="flex items-center gap-1.5">
+                          <span className="truncate">phonk_drift_aggressive.mp3</span>
+                          <span className="text-[7px] text-emerald-400/70 border-b border-dashed border-emerald-400/60">~ -40dB envelope</span>
+                        </div>
+                        
+                        {/* Clivox Ducking node pulled leftwards */}
+                        <motion.div 
+                          animate={{ 
+                            x: [0, 0, 0, -90, -75, -75, 0],
+                            scale: [1, 1, 1.08, 1.08, 1, 1, 1]
+                          }}
+                          transition={{ repeat: Infinity, duration: 8, ease: "easeInOut", delay: 1.8, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
+                          className="flex items-center gap-1 shrink-0"
+                        >
+                          <span className="text-[7px] bg-emerald-500/30 text-emerald-200 px-1.5 py-0.5 rounded border border-emerald-400 font-bold shadow">
+                            -40% Ducking Active
+                          </span>
+                          <span className="text-[7px] bg-emerald-500/20 text-emerald-300 px-1 rounded border border-emerald-500/40">
+                            4h Locked
+                          </span>
+                        </motion.div>
+                      </div>
+
+                      {/* Clivox Cursor directly on T4 with Real Drag Action */}
+                      <motion.div
+                        className="absolute z-30 pointer-events-none flex items-center gap-1.5 -top-1"
+                        animate={{ 
+                          x: [280, 260, 260, 170, 185, 185, 280],
+                          y: [0, 0, 1, 0, 0, 0, 0]
+                        }}
+                        transition={{ repeat: Infinity, duration: 8, ease: "easeInOut", delay: 1.8, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
+                      >
+                        {/* Click Pulse when grabbing automation node */}
+                        <motion.div 
+                          animate={{ scale: [0, 0, 1.8, 0, 0, 0, 0], opacity: [0, 0, 0.9, 0, 0, 0, 0] }}
+                          transition={{ repeat: Infinity, duration: 8, delay: 1.8, times: [0, 0.24, 0.30, 0.35, 0.72, 0.88, 1.0] }}
+                          className="absolute -left-1 -top-1 w-6 h-6 rounded-full border-2 border-emerald-400 bg-emerald-400/30 pointer-events-none"
+                        />
+                        
+                        <svg className="w-3.5 h-3.5 text-emerald-400 drop-shadow-[0_2px_4px_rgba(16,185,129,0.8)]" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M4 2l16 16-6.5.5-3.5 5.5-2.5-1 3.5-5.5L4 17V2z"/>
+                        </svg>
+                        
+                        <div className="flex flex-col">
+                          <span className="px-1.5 py-0.2 text-[7px] font-black uppercase bg-emerald-500 text-white rounded font-mono shadow-md whitespace-nowrap">
+                            Clivox
+                          </span>
+                          <motion.span 
+                            animate={{ opacity: [0, 0, 1, 1, 1, 0, 0] }}
+                            transition={{ repeat: Infinity, duration: 8, delay: 1.8, times: [0, 0.22, 0.28, 0.60, 0.72, 0.80, 1.0] }}
+                            className="text-[6.5px] font-bold text-emerald-200 bg-emerald-950/90 px-1 rounded border border-emerald-500/60 shadow whitespace-nowrap mt-0.5"
+                          >
+                            Automating Duck
+                          </motion.span>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </div>
+
+                  {/* Track 5: Antigravity AI Brain */}
+                  <div className="flex items-center gap-2 h-7 relative">
+                    <span className="w-16 text-[8px] font-mono text-amber-400 font-bold shrink-0">T5: BRAIN</span>
+                    <div className="h-full flex-1 bg-slate-900/90 rounded border border-slate-800 relative flex items-center px-1 overflow-visible">
+                      <motion.div 
+                        animate={{ 
+                          x: [40, 40, 40, 8, 0, 0, 40],
+                          boxShadow: ["none", "none", "0 0 10px rgba(245,158,11,0.6)", "0 0 10px rgba(245,158,11,0.6)", "none", "none", "none"]
+                        }}
+                        transition={{ repeat: Infinity, duration: 7.5, ease: "easeInOut", delay: 2.4, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
+                        className="h-[85%] bg-amber-950/40 border border-amber-500/60 rounded flex items-center justify-between px-2 text-[8px] font-mono text-amber-300 w-[88%] relative"
+                      >
+                        <span className="truncate">Hook: "HE ACTUALLY BROKE GTA 6!" #Shorts<span className="inline-block w-1 h-2.5 bg-amber-400 ml-1 animate-pulse"></span></span>
+                        <span className="text-[7px] bg-amber-500/20 text-amber-200 px-1 rounded border border-amber-500/40 shrink-0 font-bold">
+                          Virality 93.0
+                        </span>
+                      </motion.div>
+
+                      {/* Antigravity AI Brain Cursor directly on T5 with Real Drag Action */}
+                      <motion.div
+                        className="absolute z-30 pointer-events-none flex items-center gap-1.5 -top-1"
+                        animate={{ 
+                          x: [150, 75, 75, 10, 0, 0, 150],
+                          y: [0, 0, 1, 0, 0, 0, 0]
+                        }}
+                        transition={{ repeat: Infinity, duration: 7.5, ease: "easeInOut", delay: 2.4, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
+                      >
+                        {/* Click Pulse when grabbing hook handle */}
+                        <motion.div 
+                          animate={{ scale: [0, 0, 1.8, 0, 0, 0, 0], opacity: [0, 0, 0.9, 0, 0, 0, 0] }}
+                          transition={{ repeat: Infinity, duration: 7.5, delay: 2.4, times: [0, 0.24, 0.30, 0.35, 0.72, 0.88, 1.0] }}
+                          className="absolute -left-1 -top-1 w-6 h-6 rounded-full border-2 border-amber-400 bg-amber-400/30 pointer-events-none"
+                        />
+                        
+                        <svg className="w-3.5 h-3.5 text-amber-400 drop-shadow-[0_2px_4px_rgba(245,158,11,0.8)]" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M4 2l16 16-6.5.5-3.5 5.5-2.5-1 3.5-5.5L4 17V2z"/>
+                        </svg>
+                        
+                        <div className="flex flex-col">
+                          <span className="px-1.5 py-0.2 text-[7px] font-black uppercase bg-amber-400 text-black rounded font-mono font-bold shadow-md whitespace-nowrap">
+                            Antigravity
+                          </span>
+                          <motion.span 
+                            animate={{ opacity: [0, 0, 1, 1, 1, 0, 0] }}
+                            transition={{ repeat: Infinity, duration: 7.5, delay: 2.4, times: [0, 0.22, 0.28, 0.60, 0.72, 0.80, 1.0] }}
+                            className="text-[6.5px] font-bold text-amber-200 bg-amber-950/90 px-1 rounded border border-amber-500/60 shadow whitespace-nowrap mt-0.5"
+                          >
+                            Snap to Frame 0
+                          </motion.span>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </div>
+
+                  {/* Golden Playhead */}
+                  <div className="absolute top-0 bottom-0 left-[45%] w-0.5 bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.9)] z-20 pointer-events-none">
+                    <div className="w-2 h-2 -ml-0.5 bg-yellow-400 rotate-45"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 5-Agent Status Row (Single Row of 5 Columns) */}
+              <div className="grid grid-cols-5 gap-1.5 shrink-0">
+                <div className="liquid-glass-card p-1.5 space-y-0.5 border-sky-500/30">
+                  <div className="flex items-center justify-between text-[8px] font-bold text-sky-400">
+                    <span>1. Scout</span>
+                    <span className="bg-sky-500/20 px-1 rounded text-cyan-300">Dragging</span>
+                  </div>
+                  <p className="text-[8px] text-slate-300 truncate">Trimming 00:05-00:25s</p>
+                </div>
+
+                <div className="liquid-glass-card p-1.5 space-y-0.5 border-violet-500/30">
+                  <div className="flex items-center justify-between text-[8px] font-bold text-violet-400">
+                    <span>2. Clipper</span>
+                    <span className="bg-violet-500/20 px-1 rounded text-violet-300">Aligning</span>
+                  </div>
+                  <p className="text-[8px] text-slate-300 truncate">Facecam Sync @ 00:14s</p>
+                </div>
+
+                <div className="liquid-glass-card p-1.5 space-y-0.5 border-rose-500/30">
+                  <div className="flex items-center justify-between text-[8px] font-bold text-rose-400">
+                    <span>3. Meme VFX</span>
+                    <span className="bg-rose-500/20 px-1 rounded text-rose-300">Placing</span>
+                  </div>
+                  <p className="text-[8px] text-slate-300 truncate">Shake.fx @ 00:22s</p>
+                </div>
+
+                <div className="liquid-glass-card p-1.5 space-y-0.5 border-amber-500/40 bg-amber-950/20">
+                  <div className="flex items-center justify-between text-[8px] font-bold text-amber-300">
+                    <span>4. Brain</span>
+                    <span className="bg-amber-500/20 px-1 rounded text-amber-300">Snapping</span>
+                  </div>
+                  <p className="text-[8px] text-amber-100 truncate">Hook to 00:00s Frame 0</p>
+                </div>
+
+                <div className="liquid-glass-card p-1.5 space-y-0.5 border-emerald-500/30">
+                  <div className="flex items-center justify-between text-[8px] font-bold text-emerald-300">
+                    <span>5. Clivox</span>
+                    <span className="bg-emerald-500/20 px-1 rounded text-emerald-300">-40dB</span>
+                  </div>
+                  <p className="text-[8px] text-slate-300 truncate">Automating Phonk Duck</p>
+                </div>
+              </div>
+
+              {/* Compact Concurrent Telemetry Feed */}
+              <div className="liquid-glass p-2 space-y-1 h-24 flex flex-col justify-between shrink-0">
+                <div className="flex items-center justify-between text-[9px] font-bold text-slate-400 border-b border-slate-700/60 pb-0.5">
+                  <span>CONCURRENT TELEMETRY FEED</span>
+                  <span className="font-mono text-emerald-400">5 THREADS SYNCHRONIZED</span>
+                </div>
+                <div className="bg-slate-950/90 rounded p-1.5 font-mono text-[9px] text-slate-300 flex-1 overflow-y-auto space-y-0.5">
+                  {(liveState?.logs || []).slice(0, 10).map((l, i) => (
+                    <div key={i} className="flex items-start gap-1.5">
+                      <span className="text-slate-500 shrink-0">{l.time}</span>
+                      <span className="text-indigo-400 font-bold shrink-0">[{l.agent}]</span>
+                      <span className="text-slate-200 truncate">{l.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* ============================================================== */}
+            {/* COLUMN 3 (RIGHT - 3 COLS): PROMPT STUDIO & REAL STATS          */}
+            {/* ============================================================== */}
+            <section className="col-span-3 liquid-glass p-2.5 flex flex-col justify-between overflow-hidden">
+              
+              {/* Top: Antigravity Prompt Studio */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between border-b border-slate-700/60 pb-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                    PROMPT STUDIO
+                  </span>
+                  <span className="text-[9px] font-bold text-indigo-400 bg-indigo-500/15 px-1.5 py-0.2 rounded">
+                    DIRECTOR
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-[10px]">
+                    <span className="font-bold text-slate-400">Focus:</span>
+                    <select 
+                      value={topicFocus}
+                      onChange={(e) => setTopicFocus(e.target.value)}
+                      className="px-1.5 py-0.5 text-[10px] font-semibold rounded bg-slate-900 border border-slate-700 text-slate-200"
+                    >
+                      <option value="dynamic_trends">#1 Trending Right Now</option>
+                      <option value="cinema">Trending Movies & Anime</option>
+                      <option value="gaming">Streamer Fails & Reactions</option>
+                      <option value="gta6">GTA 6 Leaks & Story</option>
+                    </select>
+                  </div>
+
+                  <textarea
+                    value={promptText}
+                    onChange={(e) => setPromptText(e.target.value)}
+                    rows={2}
+                    placeholder="Enter prompt for Antigravity AI..."
+                    className="glass-input w-full p-2 text-[10px] font-medium text-slate-100 placeholder-slate-500 resize-none"
+                  />
+
+                  {/* Quick Directives */}
+                  <div className="flex flex-wrap gap-1">
+                    {[
+                      "+ Movie Trailer",
+                      "+ Cinematic Score",
+                      "+ Scream Zoom",
+                      "+ Split 60FPS",
+                      "+ No Memes"
+                    ].map(chip => (
+                      <button
+                        key={chip}
+                        onClick={() => setPromptText(prev => prev + " " + chip.replace("+ ", ""))}
+                        className="liquid-btn px-1.5 py-0.2 text-[8px] font-semibold text-slate-300 hover:text-white"
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={savePromptDirection}
+                    disabled={actionLoading}
+                    className="liquid-btn-primary w-full py-1 text-[10px] font-black flex items-center justify-center gap-1.5"
+                  >
+                    <span>Save & Apply AI Direction</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Middle: 100% Real Video Spec Deck */}
+              <div className="liquid-glass-card p-2 space-y-1 my-1 text-[10px] font-mono">
+                <div className="flex justify-between text-slate-400 border-b border-slate-700/50 pb-0.5">
+                  <span className="font-bold text-slate-300">ENCODING SPECS</span>
+                  <span className="text-emerald-400 font-bold">FFPROBE</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Resolution:</span>
+                  <span className="font-bold text-white">1080x1920 (9:16)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Frame Rate:</span>
+                  <span className="font-bold text-emerald-400">60.00 FPS</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Bitrate:</span>
+                  <span className="font-bold text-slate-200">5,167 kbps</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Virality Score:</span>
+                  <span className="font-bold text-indigo-400">{realVirality} / 100</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Profit Split:</span>
+                  <span className="font-bold text-emerald-400">50/50 Active</span>
+                </div>
+              </div>
+
+              {/* Bottom: Published & Vault Queue Tabs */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[10px] font-bold border-b border-slate-700/60 pb-1">
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => setActiveTab('published')}
+                      className={`px-2 py-0.5 rounded text-[9px] font-bold ${activeTab === 'published' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}
+                    >
+                      Published ({published.length || 1})
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('queue')}
+                      className={`px-2 py-0.5 rounded text-[9px] font-bold ${activeTab === 'queue' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}
+                    >
+                      Queue ({totalQueueCount})
+                    </button>
+                  </div>
+                  <button 
+                    onClick={() => setShowRadarModal(true)}
+                    className="text-[9px] text-cyan-400 font-bold hover:underline"
+                  >
+                    Radar ({totalCandidatesCount})
+                  </button>
+                </div>
+
+                {/* Published Item */}
+                {activeTab === 'published' && (
+                  <div className="p-1.5 rounded-lg bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-1 text-[9px]">
+                    <div className="min-w-0">
+                      <span className="font-extrabold text-emerald-400 uppercase text-[8px] block">LIVE ON YOUTUBE</span>
+                      <h6 className="font-bold text-slate-200 truncate">WAIT TILL THE END IN TRENDS!</h6>
+                    </div>
+                    <a 
+                      href="https://www.youtube.com/shorts/xGXXPooGYvo" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="liquid-btn-emerald px-2 py-0.5 text-[9px] font-bold shrink-0"
+                    >
+                      View
+                    </a>
+                  </div>
+                )}
+
+                {/* Queue Items */}
+                {activeTab === 'queue' && (
+                  <div className="max-h-[55px] overflow-y-auto space-y-1 text-[9px]">
+                    {clips.slice(0, 3).map(c => (
+                      <div key={c.id} className="p-1 rounded bg-slate-900/80 border border-slate-800 flex justify-between">
+                        <span className="truncate text-slate-300">{c.title}</span>
+                        <span className="text-indigo-400 font-mono font-bold shrink-0 ml-1">{c.virality_score}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          </main>
+
+          {/* Modal: 50 Scraped Streams in Radar Vault */}
+          <AnimatePresence>
+            {showRadarModal && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+              >
+                <motion.div 
+                  initial={{ scale: 0.95, y: 15 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.95, y: 15 }}
+                  className="liquid-glass bg-slate-950/95 max-w-3xl w-full max-h-[80vh] flex flex-col p-4 space-y-3 border border-slate-700"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h3 className="text-sm font-black text-white">
+                      Agent Scout Radar Vault — 50 Scraped Streams
+                    </h3>
+                    <button 
+                      onClick={() => setShowRadarModal(false)}
+                      className="liquid-btn px-3 py-1 text-xs font-bold text-slate-300"
+                    >
+                      Close ✕
+                    </button>
+                  </div>
+
+                  <div className="overflow-y-auto space-y-1.5 flex-1 pr-1">
+                    {candidates.slice(0, 25).map((cand, idx) => (
+                      <div key={cand.video_id || idx} className="p-2 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3 text-xs">
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-slate-200 truncate text-[11px]">{cand.title}</h4>
+                          <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                            <span className="font-semibold text-indigo-400">{cand.channel_title}</span>
+                            <span>•</span>
+                            <span className="font-mono">{Number(cand.view_count || 0).toLocaleString()} views</span>
+                          </div>
+                        </div>
+                        <a 
+                          href={cand.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="liquid-btn px-2.5 py-0.5 text-[10px] font-bold text-slate-300 shrink-0"
+                        >
+                          Source
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

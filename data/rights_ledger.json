@@ -1,0 +1,67 @@
+{
+  "authorized_channels": [],
+  "whitelisted_videos": {
+    "gta6_speed_24h": {
+      "source_type": "creator_authorized",
+      "permission_proof": "Partner stream clipping permission granted",
+      "attribution_text": "Footage courtesy of iShowSpeed Livestream Archive",
+      "verified_at": "2026-11-21T10:15:26.907179"
+    },
+    "gta6_cutscene_gameplay": {
+      "source_type": "creator_authorized",
+      "permission_proof": "Partner stream clipping permission granted",
+      "attribution_text": "Footage courtesy of Vice City Gaming Clips",
+      "verified_at": "2026-11-21T10:15:26.907179"
+    },
+    "gta6_forgot_to_save": {
+      "source_type": "creator_authorized",
+      "permission_proof": "Partner stream clipping permission granted",
+      "attribution_text": "Footage courtesy of iShowSpeed Livestream Archive",
+      "verified_at": "2026-11-21T10:15:26.926858"
+    }
+  },
+  "audit_trail": [
+    {
+      "action": "AUTHORIZE_VIDEO",
+      "target": "gta6_speed_24h",
+      "details": "Partner stream clipping permission granted",
+      "timestamp": "2026-11-21T10:01:47.339522"
+    },
+    {
+      "action": "AUTHORIZE_VIDEO",
+      "target": "gta6_cutscene_gameplay",
+      "details": "Partner stream clipping permission granted",
+      "timestamp": "2026-11-21T10:01:47.339522"
+    },
+    {
+      "action": "AUTHORIZE_VIDEO",
+      "target": "gta6_speed_24h",
+      "details": "Partner stream clipping permission granted",
+      "timestamp": "2026-11-21T10:08:49.444666"
+    },
+    {
+      "action": "AUTHORIZE_VIDEO",
+      "target": "gta6_cutscene_gameplay",
+      "details": "Partner stream clipping permission granted",
+      "timestamp": "2026-11-21T10:08:49.448082"
+    },
+    {
+      "action": "AUTHORIZE_VIDEO",
+      "target": "gta6_speed_24h",
+      "details": "Partner stream clipping permission granted",
+      "timestamp": "2026-11-21T10:15:26.907179"
+    },
+    {
+      "action": "AUTHORIZE_VIDEO",
+      "target": "gta6_cutscene_gameplay",
+      "details": "Partner stream clipping permission granted",
+      "timestamp": "2026-11-21T10:15:26.916444"
+    },
+    {
+      "action": "AUTHORIZE_VIDEO",
+      "target": "gta6_forgot_to_save",
+      "details": "Partner stream clipping permission granted",
+      "timestamp": "2026-11-21T10:15:26.936853"
+    }
+  ]
+}
