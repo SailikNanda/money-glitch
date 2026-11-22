@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/file_00000000e82882119d1db235cbdc9dcb.png" alt="Animated Money Glitch studio banner" width="100%" />
+<img src="assets/file_00000000e82882119d1db235cbdc9dcb.png" alt="Money Glitch studio promotional banner" width="100%" />
 
 <br/><br/>
 
@@ -34,145 +34,227 @@ A creator-first, Antigravity-powered production pipeline that discovers emerging
 
 <div align="center">
 
-## ✨ ONE WORKSPACE. THE ENTIRE SHORT-FORM WORKFLOW.
+<img src="https://readme-typing-svg.demolab.com?font=Space+Grotesk&weight=800&size=28&duration=2600&pause=900&color=22D3EE&center=true&vCenter=true&width=850&height=62&lines=DISCOVER+THE+NEXT+VIRAL+MOMENT;TURN+LONG+VIDEOS+INTO+SHORTS;CREATE+%E2%80%A2+QUEUE+%E2%80%A2+PUBLISH" alt="Animated studio tagline" />
 
-*From the first spark of a trend to the final scheduled upload.*
+### ✨ ONE STUDIO. INFINITE CREATIVE POSSIBILITIES.
+
+*An end-to-end content production pipeline, designed for creators who want more than a basic video cutter.*
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:06b6d4,50:8b5cf6,100:ec4899&height=5&section=header" width="100%" alt="Gradient divider" />
 
 </div>
 
 <table>
 <tr>
-<td width="33%" valign="top" align="center">
-<h3>01 / DISCOVER</h3>
-<strong>Trend intelligence</strong><br/><br/>
-Search across 24 content categories, prioritize fresh momentum and rotate sources to avoid repetitive feeds.
+<td align="center" width="33%" valign="top">
+<h2>🔍</h2>
+<h3>01 · DISCOVER</h3>
+<img src="https://img.shields.io/badge/TREND-INTELLIGENCE-0891B2?style=flat-square" alt="Trend Intelligence" /><br/><br/>
+<b>Find the signal in the noise.</b><br/><br/>
+Explore <b>24 content categories</b>, prioritize fresh velocity and diversify creators before choosing what to clip.
 </td>
-<td width="33%" valign="top" align="center">
-<h3>02 / CREATE</h3>
-<strong>Retention-focused editing</strong><br/><br/>
-Extract standout moments, reframe to 9:16 and add kinetic subtitles, punch-ins and audio treatment.
+<td align="center" width="33%" valign="top">
+<h2>🎬</h2>
+<h3>02 · TRANSFORM</h3>
+<img src="https://img.shields.io/badge/RETENTION-CREATIVE-9333EA?style=flat-square" alt="Creative Engine" /><br/><br/>
+<b>Make every second count.</b><br/><br/>
+Extract high-impact moments, compose for <b>9:16</b> and add kinetic captions, punch-ins and audio treatment.
 </td>
-<td width="33%" valign="top" align="center">
-<h3>03 / DELIVER</h3>
-<strong>Publishing orchestration</strong><br/><br/>
-Connect YouTube via OAuth, manage a persistent queue and apply spacing and daily upload limits.
+<td align="center" width="33%" valign="top">
+<h2>🚀</h2>
+<h3>03 · DISTRIBUTE</h3>
+<img src="https://img.shields.io/badge/PUBLISHING-CONTROL-DB2777?style=flat-square" alt="Publishing Control" /><br/><br/>
+<b>Publish with intention.</b><br/><br/>
+Use YouTube OAuth, a persistent SQLite queue and configurable pacing to coordinate uploads.
 </td>
 </tr>
 </table>
 
 <div align="center">
 
-| **24** discovery categories | **120h** freshness window | **9:16** vertical video | **60 FPS** target |
-|:---:|:---:|:---:|:---:|
-| **4h** upload spacing | **3/day** publishing cap | **SQLite** persistence | **FFmpeg** editing |
+### ⚡ STUDIO SPECIFICATIONS
 
-<sub>Values above describe the repository's documented configuration and targets, not measured performance guarantees.</sub>
+<img src="https://img.shields.io/badge/24-CATEGORIES-06B6D4?style=for-the-badge" alt="24 categories" />
+<img src="https://img.shields.io/badge/5_DAY-TREND_WINDOW-8B5CF6?style=for-the-badge" alt="5 day window" />
+<img src="https://img.shields.io/badge/9%3A16-VERTICAL-F43F5E?style=for-the-badge" alt="9:16 vertical" />
+<img src="https://img.shields.io/badge/60_FPS-OUTPUT_TARGET-0EA5E9?style=for-the-badge" alt="60 fps target" />
+
+<img src="https://img.shields.io/badge/4_HOURS-UPLOAD_SPACING-6366F1?style=flat-square" alt="4 hour upload spacing" />
+<img src="https://img.shields.io/badge/3%2FDAY-UPLOAD_CAP-EC4899?style=flat-square" alt="3 uploads per day" />
+<img src="https://img.shields.io/badge/SQLite-PERSISTENCE-14B8A6?style=flat-square" alt="SQLite persistence" />
+
+<sub>These are documented project targets and policies, not independently verified performance measurements.</sub>
 
 </div>
 
 ---
 
-## 🎨 The creative engine
+## 🌌 THE CREATIVE UNIVERSE
 
-### 🔭 Trend radar — built for variety
+<div align="center">
 
-Money Glitch is designed to look beyond a single creator or genre. Its discovery strategy scores recent candidate videos and rotates content to reduce repetition.
+### 24 categories · 4 worlds · one discovery engine
 
-| Content universe | Categories | Examples |
-|:---|:---:|:---|
-| 🎮 **Gaming & esports** | 8 | Open-world chaos, FPS clutches, survival, horror, indie discoveries |
-| 🎬 **Film & entertainment** | 5 | Trailers, action sequences, anime, plot twists, soundtrack moments |
-| 🏆 **Sports & adrenaline** | 6 | Football, basketball, combat sports, extreme stunts, motorsport |
-| ⚡ **Internet & culture** | 5 | Tech, animals, rare moments, satisfying restoration, street trivia |
+*From clutch gameplay to cinematic climaxes, the next great Short can come from anywhere.*
 
-> **Freshness-first discovery:** The documented strategy uses a five-day candidate window, view-velocity scoring and a creator/topic rotation policy. These filters help identify relevant material; they do not establish permission to reuse it.
-
-### ✂️ Edit for the vertical screen
+</div>
 
 <table>
 <tr>
 <td width="50%" valign="top">
+<h3>🎮 GAMING GALAXY</h3>
+<img src="https://img.shields.io/badge/08-CATEGORIES-06B6D4?style=flat-square" alt="8 gaming categories" /><br/><br/>
+Open-world chaos · esports clutches · survival traps · horror jumpscares · physics destruction · gamer rage · boss fights · viral indie games
+</td>
+<td width="50%" valign="top">
+<h3>🎞️ CINEMA DIMENSION</h3>
+<img src="https://img.shields.io/badge/05-CATEGORIES-A855F7?style=flat-square" alt="5 cinema categories" /><br/><br/>
+Blockbuster trailers · action sequences · anime climaxes · plot twists · soundtrack drops
+</td>
+</tr>
+<tr>
+<td valign="top">
+<h3>🏆 SPORTS ARENA</h3>
+<img src="https://img.shields.io/badge/06-CATEGORIES-F43F5E?style=flat-square" alt="6 sports categories" /><br/><br/>
+Basketball · combat sports · football · extreme stunts · American football · supercar drifting
+</td>
+<td valign="top">
+<h3>⚡ VIRAL FRONTIER</h3>
+<img src="https://img.shields.io/badge/05-CATEGORIES-14B8A6?style=flat-square" alt="5 viral categories" /><br/><br/>
+Unbelievable saves · robotics and tech · animals · satisfying restoration · street trivia
+</td>
+</tr>
+</table>
 
-**THE FRAME**
+<details>
+<summary><b>🧠 Open the trend intelligence playbook</b></summary>
 
-- 1080 × 1920 vertical output target
-- Facecam / POV + action-oriented framing
+<br/>
+
+The documented discovery strategy combines a **five-day freshness window**, **view-velocity weighting**, **creator sampling**, and **topic rotation**. It aims to avoid repeatedly selecting the same creator or category. These are selection rules, not a guarantee that source footage can legally be republished.
+
+</details>
+
+---
+
+## 🎨 THE RETENTION LAB
+
+<div align="center">
+
+### Every frame has a job.
+
+**Vertical storytelling, dynamic emphasis and audio that supports the moment.**
+
+</div>
+
+<table>
+<tr>
+<td width="50%" valign="top">
+<h3>📱 FRAME COMPOSER</h3>
+
+- **1080 × 1920** vertical output target
+- Facecam, POV and action-oriented reframing
 - Subtitle-safe composition
 - FFmpeg-based processing
 
 </td>
 <td width="50%" valign="top">
+<h3>💥 MOMENT ENHANCER</h3>
 
-**THE FINISH**
-
-- 3.5-second pattern-interrupt cadence
-- 1.18× punch-in zoom treatment
-- Kinetic ASS captions with highlighted words
-- Color enhancement and speech-aware music ducking
+- **3.5s** pattern-interrupt cadence
+- **1.18×** punch-in zoom treatment
+- ASS subtitles with highlighted active words
+- Color treatment and speech-aware music ducking
 
 </td>
 </tr>
 </table>
 
+<div align="center">
+
+### 📐 VERTICAL COMPOSITION BLUEPRINT
+
+</div>
+
 ```text
-╭────────── VERTICAL SHORT ──────────╮
-│                                    │
-│          FACE CAM / POV            │
-│                                    │
-├────────────────────────────────────┤
-│                                    │
-│          THE MAIN MOMENT           │
-│                                    │
-│       action · zoom · energy       │
-│                                    │
-├────────────────────────────────────┤
-│        KINETIC CAPTION ZONE        │
-├────────────────────────────────────┤
-│       PLATFORM-SAFE MARGIN         │
-╰────────────────────────────────────╯
+         ╭────────── 9 : 16 ──────────╮
+         │                            │
+         │      🎥 FACE / POV         │
+         │                            │
+         ├────────────────────────────┤
+         │                            │
+         │     ⚡ MAIN ACTION         │
+         │                            │
+         │     ZOOM • IMPACT • CUT    │
+         │                            │
+         ├────────────────────────────┤
+         │      💬 KINETIC WORDS      │
+         ├────────────────────────────┤
+         │       SAFE UI MARGIN       │
+         ╰────────────────────────────╯
 ```
 
 ---
 
-## ⚡ How it works
+## 🧬 THE AUTONOMOUS PIPELINE
 
 <div align="center">
 
-**DISCOVER → FILTER → SELECT → CLIP → POLISH → QUEUE → PUBLISH**
+### FROM SIGNAL TO SCREEN
+
+**Discover → Evaluate → Diversify → Clip → Enhance → Queue → Upload**
 
 </div>
 
 ```mermaid
-flowchart TD
-  A["01 · Trend radar<br/>24 content categories"] --> B["02 · Freshness + velocity<br/>Recent candidate scoring"]
-  B --> C["03 · Creator rotation<br/>Diversified selection"]
-  C --> D["04 · Clip engine<br/>Vertical moment extraction"]
-  D --> E["05 · Retention editor<br/>Subtitles · zoom · audio"]
-  E --> F["06 · Persistent SQLite queue"]
-  F --> G{"07 · Upload guard"}
-  G -->|"Window open"| H["YouTube Data API v3"]
-  G -->|"Wait"| F
-  classDef discover fill:#10233A,stroke:#38BDF8,color:#FFFFFF
-  classDef create fill:#2A173E,stroke:#C084FC,color:#FFFFFF
-  classDef deliver fill:#10352F,stroke:#2DD4BF,color:#FFFFFF
-  class A,B,C discover
-  class D,E create
-  class F,G,H deliver
+flowchart TB
+  subgraph DISCOVERY["🔎 PHASE 01 · INTELLIGENCE"]
+    direction LR
+    A["🌐 TREND RADAR<br/>24 content categories"] --> B["📈 MOMENTUM SCORING<br/>Freshness + velocity"]
+    B --> C["🔀 CREATOR ROTATION<br/>Topic diversity"]
+  end
+  subgraph PRODUCTION["🎬 PHASE 02 · PRODUCTION"]
+    direction LR
+    D["✂️ CLIP ENGINE<br/>Moment extraction"] --> E["📱 9:16 REFRAME<br/>Vertical composition"]
+    E --> F["✨ RETENTION FINISH<br/>Captions + zoom + audio"]
+  end
+  subgraph DELIVERY["🚀 PHASE 03 · DELIVERY"]
+    direction LR
+    G["🗃️ SQLITE QUEUE<br/>Persistent state"] --> H{"⏱️ PUBLISHING GUARD<br/>Time + daily limits"}
+    H -->|"Ready"| I["▶️ YOUTUBE API<br/>Publish"]
+    H -->|"Wait"| G
+  end
+  C --> D
+  F --> G
+  classDef cyan fill:#082F49,stroke:#22D3EE,stroke-width:2px,color:#F0FDFF
+  classDef violet fill:#2E1065,stroke:#C084FC,stroke-width:2px,color:#FAF5FF
+  classDef pink fill:#500724,stroke:#FB7185,stroke-width:2px,color:#FFF1F2
+  class A,B,C cyan
+  class D,E,F violet
+  class G,H,I pink
+  style DISCOVERY fill:#071827,stroke:#0891B2,stroke-width:2px,color:#67E8F9
+  style PRODUCTION fill:#160D2B,stroke:#9333EA,stroke-width:2px,color:#E9D5FF
+  style DELIVERY fill:#220B1B,stroke:#DB2777,stroke-width:2px,color:#FBCFE8
 ```
 
+<div align="center">
+
+**🔵 INTELLIGENCE** &nbsp; → &nbsp; **🟣 CREATION** &nbsp; → &nbsp; **🔴 DELIVERY**
+
+</div>
+
 <details>
-<summary><b>🧩 Explore the pipeline modules</b></summary>
-<br/>
+<summary><b>🛠️ Explore the modules behind the pipeline</b></summary>
 
 | Module | Responsibility |
 |:---|:---|
-| `src/trend_discovery.py` | Candidate search and discovery |
-| `src/clipping_engine.py` | Moment selection and vertical clipping |
-| `src/retention_editor.py` | Video/audio finishing |
-| `src/scheduler.py` | Pipeline cadence and scheduling |
-| `src/youtube_uploader.py` | YouTube authorization and publishing |
-| `src/dashboard.py` | Local web control surface |
-| `run_autopilot.py` | Master command-line entrypoint |
+| `src/trend_discovery.py` | Discovery and candidate selection |
+| `src/clipping_engine.py` | Moment extraction and reframing |
+| `src/retention_editor.py` | Caption, zoom and audio treatment |
+| `src/scheduler.py` | Production and publishing cadence |
+| `src/youtube_uploader.py` | YouTube OAuth and upload workflow |
+| `src/dashboard.py` | Local control surface |
+| `run_autopilot.py` | Command-line orchestration |
 
 </details>
 
