@@ -36,16 +36,32 @@ class GitHubAutoUpdater:
         self.repo_url = GITHUB_REPO_URL
         self.interval_days = UPDATE_CHECK_INTERVAL_DAYS
 
-    def _run_git(self, args: List[str], timeout: int = 40) -> subprocess.CompletedProcess:
-        """Runs a git command inside the workspace directory."""
+    def _run_git(self, args: List[str], timeout: int = 30) -> subprocess.CompletedProcess:
+        """Runs a git command inside the workspace directory safely."""
         cmd = ["git"] + args
-        return subprocess.run(
-            cmd,
-            cwd=str(self.workspace_dir),
-            capture_output=True,
-            text=True,
-            timeout=timeout
-        )
+        try:
+            return subprocess.run(
+                cmd,
+                cwd=str(self.workspace_dir),
+                capture_output=True,
+                text=True,
+                timeout=timeout
+            )
+        except subprocess.TimeoutExpired:
+            logger.warning(f"[AutoUpdater] Git command '{' '.join(args)}' timed out after {timeout}s.")
+            return subprocess.CompletedProcess(
+                args=cmd,
+                returncode=1,
+                stdout="",
+                stderr=f"Git command timed out after {timeout} seconds"
+            )
+        except Exception as e:
+            return subprocess.CompletedProcess(
+                args=cmd,
+                returncode=1,
+                stdout="",
+                stderr=str(e)
+            )
 
     def is_git_repository(self) -> bool:
         """Verifies if the workspace is a valid Git repository."""
