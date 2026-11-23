@@ -23,7 +23,8 @@ Activate this skill whenever the user:
 
 ```mermaid
 flowchart TD
-    A["User Command: 'Use this'"] --> B["Phase 1: Environment Check"]
+    A["User Command: 'Use this'"] --> B0["Phase 0: 7-Day GitHub Auto-Update Check"]
+    B0 --> B["Phase 1: Environment Check"]
     B --> C{"Client Secrets Present?"}
     C -- No --> D["Phase 2: Browser Control on Google Cloud Console"]
     D --> E["Save to data/client_secrets.json"]
@@ -133,3 +134,6 @@ Antigravity acts as the Chief Content Officer and Master Editor:
 6. **Publishing Guard & Continuous Lifecycle**:
    - Publish via `src/youtube_uploader.py` honoring the 4-hour spacing window and 3 uploads/day limit.
    - **Lifecycle Management:** Runs continuously (`python run_autopilot.py daemon`) as long as the PC is turned ON. When the PC shuts down, execution halts safely with SQLite persistence. When the PC turns on, it seamlessly resumes from where it left off!
+7. **Autonomous 7-Day GitHub Self-Updates**:
+   - The studio automatically queries the GitHub repository every 7 days (`src/auto_updater.py`).
+   - Automatically fast-forward pulls latest commits, upgrades Python dependencies (`pip install -r requirements.txt`), syncs database schemas, and propagates Antigravity skills to `~/.gemini/config/skills/` without requiring any manual user intervention. Zero data loss: credentials and local analytics remain fully protected.

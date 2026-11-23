@@ -76,8 +76,21 @@ class AutonomousScheduler:
             "generated_clips": [],
             "uploaded": 0,
             "auto_publish_enabled": False,
-            "pacing": {}
+            "pacing": {},
+            "auto_update": {}
         }
+
+        # Step 0: Autonomous 7-Day GitHub Repo Update Check
+        try:
+            from .auto_updater import check_and_auto_update_if_due
+            update_status = check_and_auto_update_if_due(interval_days=7)
+            results["auto_update"] = update_status
+            if update_status.get("update_applied"):
+                logger.info(f"[AutoUpdater] New GitHub commits applied! Now running on commit: {update_status.get('new_commit')}")
+            else:
+                logger.info(f"[AutoUpdater] {update_status.get('message')}")
+        except Exception as e:
+            logger.warning(f"[AutoUpdater] Auto-updater check notice: {e}")
 
         # Step 1: Trend Discovery
         try:

@@ -418,6 +418,21 @@
                 </div>
               )}
 
+              {/* GitHub 7-Day Auto-Update Status Pill */}
+              <div 
+                className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/80 border border-indigo-500/30 text-slate-300 text-[11px]"
+                title={`GitHub Auto-Update active (Every 7 days). Current commit: ${liveState?.updater?.current_commit || 'HEAD'}`}
+              >
+                <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
+                <span className="font-semibold text-slate-300 text-[11px]">GitHub Sync</span>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  {liveState?.updater?.current_commit || '7e6ba96'}
+                </span>
+                <span className="text-[9px] text-slate-400 font-medium">
+                  ({liveState?.updater?.days_until_next_check != null ? `${liveState.updater.days_until_next_check}d` : '7d'})
+                </span>
+              </div>
+
               {/* Clean Storage / Hard Reset Button */}
               <button 
                 onClick={() => triggerAction("purge_storage")}

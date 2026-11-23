@@ -55,6 +55,11 @@ def main():
     # Command: auth-youtube
     p_auth = subparsers.add_parser("auth-youtube", help="Run Google OAuth 2.0 flow to connect YouTube channel")
 
+    # Command: update
+    p_upd = subparsers.add_parser("update", help="Check and apply GitHub updates for Money Glitch Studio")
+    p_upd.add_argument("--check-only", action="store_true", help="Only check for updates without pulling")
+    p_upd.add_argument("--force", action="store_true", help="Force check ignoring 7-day interval")
+
     args = parser.parse_args()
 
     if args.command == "discover":
@@ -124,6 +129,38 @@ def main():
             print(f"\n[OK] Connected to channel: {info.get('channel_title')} (ID: {info.get('channel_id')})\n")
         else:
             print("\n[ERROR] YouTube OAuth authentication failed or client_secrets.json is missing.\n")
+
+    elif args.command == "update":
+        from src.auto_updater import get_auto_updater
+        updater = get_auto_updater()
+        if args.check_only:
+            res = updater.check_for_updates()
+            print("\n=========================================")
+            print("   MONEY GLITCH GITHUB UPDATE CHECK")
+            print("=========================================")
+            print(f"Status:          {res.get('status')}")
+            print(f"Local Commit:    {res.get('local_commit')}")
+            print(f"Remote Commit:   {res.get('remote_commit')}")
+            print(f"Commits Behind:  {res.get('behind_count', 0)}")
+            print(f"Update Ready:    {'YES' if res.get('update_available') else 'NO (Up to date)'}")
+            if res.get("commits"):
+                print("New Commits on GitHub:")
+                for c in res.get("commits", []):
+                    print(f"  * {c}")
+            print("=========================================\n")
+        else:
+            res = updater.check_and_auto_update_if_due(interval_days=7, force=args.force)
+            print("\n=========================================")
+            print("   MONEY GLITCH 7-DAY AUTO-UPDATER")
+            print("=========================================")
+            print(f"Status:   {res.get('status')}")
+            print(f"Message:  {res.get('message')}")
+            if res.get("update_applied"):
+                print(f"Updated from {res.get('previous_commit')} -> {res.get('new_commit')}")
+                print(f"Latest Commit Message: {res.get('commit_message')}")
+            elif res.get("remaining_days") is not None:
+                print(f"Days until next scheduled check: {res.get('remaining_days')} days")
+            print("=========================================\n")
 
     elif args.command == "dashboard":
         print(f"\n[STARTING] Viral Shorts Autopilot Dashboard on http://{args.host}:{args.port}\n")

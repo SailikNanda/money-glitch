@@ -15,6 +15,13 @@ When triggered with `"Use this"` or `"Run this"`, Antigravity MUST execute these
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
+│  Phase 0: Autonomous 7-Day GitHub Self-Update Check                    │
+│  - Every 7 days, checks remote GitHub repo for new commits             │
+│  - Pulls updates, upgrades pip dependencies & syncs Antigravity skills │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
 │  Phase 1: Environment & Dependency Auto-Setup                          │
 │  - Install requirements.txt, ensure FFmpeg, init SQLite DB             │
 └───────────────────────────────────┬────────────────────────────────────┘
@@ -138,3 +145,6 @@ Antigravity acts as the Supreme Content Director and Executive Producer:
 7. **Publishing Guard & Continuous Lifecycle**:
    - Upload through `src/youtube_uploader.py` honoring the 4-hour spacing window and maximum 3 uploads/day limit.
    - **Lifecycle Management:** Runs continuously (`python run_autopilot.py daemon`) as long as the PC is turned ON. When the PC shuts down, execution halts safely with SQLite persistence. When the PC turns on, it seamlessly resumes from where it left off!
+8. **Autonomous 7-Day GitHub Self-Updates**:
+   - The studio checks `origin main` every 7 days (`src/auto_updater.py`).
+   - Automatically fast-forward pulls updates, refreshes dependencies (`pip install -r requirements.txt`), initializes DB schema, and propagates skills to `~/.gemini/config/skills/` without any manual user intervention. Zero data loss: client secrets, tokens, and database are completely protected.

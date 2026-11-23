@@ -30,23 +30,30 @@ def register_automation():
             "--",
             (
                 f"Execute Money Glitch Autonomous Studio scheduled cycle in '{workspace_dir}'. "
-                "Discover real-time trends across 24 dynamic categories (within 5-day freshness window), "
-                "apply universal creator zigzag diversification, detect viral stream climaxes, "
-                "direct high-retention 9:16 60FPS video edits with kinetic subtitles, "
-                "and publish to YouTube Shorts respecting the 4-hour spacing guard."
+                "1. Auto-Updater: Check for GitHub repository updates (auto-update every 7 days). "
+                "2. Trend Intelligence: Discover real-time trends across 24 dynamic categories (within 5-day freshness window). "
+                "3. Zigzag Diversification: Apply universal creator rotation (max 1 candidate/creator, 5-upload cooldown). "
+                "4. Retention Director: Detect viral stream climaxes, direct high-retention 9:16 60FPS video edits with video meme cutaways, trending phonk ducking, and kinetic subtitles. "
+                "5. Publishing Guard: Publish to YouTube Shorts respecting the 4-hour spacing guard (max 3/day)."
             )
         ],
         "restart_policy": "always",
         "display_name": "Money Glitch Autonomous Studio",
-        "description": "Every 3 hours, autonomously scans 24 categories (5-day window), performs universal creator zigzag rotation, retention editing, and publishes to YouTube Shorts.",
+        "description": "Every 3 hours, runs autonomous studio cycle with 7-day GitHub self-updates, 24-category trend scans, zigzag creator rotation, and high-retention YouTube Shorts publishing.",
         "agent_permissions": {
             "workspace_uris": [
                 workspace_uri
             ],
             "access_grants": [
                 "command(python run_autopilot.py)",
+                "command(python run_autopilot.py update)",
                 "command(ffmpeg)",
-                "command(ffprobe)"
+                "command(ffprobe)",
+                "command(git)",
+                "command(git fetch)",
+                "command(git pull)",
+                "command(git rev-parse)",
+                "command(pip install)"
             ]
         }
     }
@@ -73,8 +80,14 @@ def register_automation():
                     ],
                     "accessGrants": [
                         "command(python run_autopilot.py)",
+                        "command(python run_autopilot.py update)",
                         "command(ffmpeg)",
-                        "command(ffprobe)"
+                        "command(ffprobe)",
+                        "command(git)",
+                        "command(git fetch)",
+                        "command(git pull)",
+                        "command(git rev-parse)",
+                        "command(pip install)"
                     ]
                 }
             }

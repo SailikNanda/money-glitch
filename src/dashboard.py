@@ -186,6 +186,9 @@ async def get_status():
     pub_list = list_published()
     published_today = len([p for p in pub_list if p.get("published_at", "").startswith(today_str)])
 
+    from .auto_updater import get_updater_status
+    updater_info = get_updater_status()
+
     return {
         "status": "active" if not emergency_stop else "stopped",
         "auto_publish_enabled": auto_publish,
@@ -196,8 +199,15 @@ async def get_status():
         "min_spacing_hours": MIN_UPLOAD_SPACING_HOURS,
         "topic_weights": get_setting("topic_weights", TOPIC_WEIGHTS),
         "timezone": SCHEDULING_TIMEZONE,
-        "total_cost_usd": "0.00"
+        "total_cost_usd": "0.00",
+        "updater": updater_info
     }
+
+@app.post("/api/update/check")
+async def trigger_update_check():
+    from .auto_updater import check_and_auto_update_if_due
+    res = check_and_auto_update_if_due(interval_days=7, force=True)
+    return res
 
 @app.get("/api/live_state")
 async def get_live_state():
@@ -274,6 +284,9 @@ async def get_live_state():
         "ducking": "-40% Phonk under screams",
         "meme_sfx": ["Vine Boom", "GTA Wasted", "Screen Shake 12px"]
     }
+
+    from .auto_updater import get_updater_status
+    LIVE_STATE["updater"] = get_updater_status()
     
     return LIVE_STATE
 

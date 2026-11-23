@@ -211,3 +211,8 @@ VIDEO_HEIGHT = 1920
 MIN_CLIP_DURATION = 15.0
 MAX_CLIP_DURATION = 45.0
 ABSOLUTE_MAX_DURATION = 60.0
+
+# Auto-Updater Configuration (Self-updating every 7 days from GitHub)
+AUTO_UPDATE_ENABLED = os.getenv("AUTO_UPDATE_ENABLED", "true").lower() == "true"
+UPDATE_CHECK_INTERVAL_DAYS = int(os.getenv("UPDATE_CHECK_INTERVAL_DAYS", "7"))
+GITHUB_REPO_URL = os.getenv("GITHUB_REPO_URL", "https://github.com/SailikNanda/money-glitch.git")

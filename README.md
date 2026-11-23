@@ -334,6 +334,11 @@ python run_autopilot.py cycle
 # Start the scheduler while this computer remains on
 python run_autopilot.py daemon
 
+# Check or apply GitHub updates (Self-updating every 7 days)
+python run_autopilot.py update
+python run_autopilot.py update --check-only
+python run_autopilot.py update --force
+
 # Inspect status and publishing queue
 python run_autopilot.py status
 
