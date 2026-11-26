@@ -209,6 +209,22 @@ async def trigger_update_check():
     res = check_and_auto_update_if_due(interval_days=7, force=True)
     return res
 
+@app.get("/api/candidates")
+async def get_candidates(limit: int = 50, category: Optional[str] = None):
+    return list_candidates(limit=limit, category=category)
+
+@app.get("/api/clips")
+async def get_clips(limit: int = 50, status: Optional[str] = None):
+    return list_clips(limit=limit, status=status)
+
+@app.get("/api/queue")
+async def get_queue():
+    return list_upload_queue()
+
+@app.get("/api/published")
+async def get_published(limit: int = 50):
+    return list_published(limit=limit)
+
 @app.get("/api/live_state")
 async def get_live_state():
     # Detect available playable videos

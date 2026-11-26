@@ -240,9 +240,24 @@ def add_clip(clip: Dict[str, Any]) -> int:
 def list_clips(limit: int = 50, status: Optional[str] = None) -> List[Dict[str, Any]]:
     conn = get_connection()
     if status:
-        rows = conn.execute("SELECT * FROM clips WHERE status = ? ORDER BY virality_score DESC LIMIT ?", (status, limit)).fetchall()
+        query = """
+        SELECT c.*, cand.channel_title as channel_name, cand.category as category
+        FROM clips c
+        LEFT JOIN candidates cand ON c.source_video_id = cand.video_id
+        WHERE c.status = ?
+        ORDER BY c.virality_score DESC
+        LIMIT ?
+        """
+        rows = conn.execute(query, (status, limit)).fetchall()
     else:
-        rows = conn.execute("SELECT * FROM clips ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+        query = """
+        SELECT c.*, cand.channel_title as channel_name, cand.category as category
+        FROM clips c
+        LEFT JOIN candidates cand ON c.source_video_id = cand.video_id
+        ORDER BY c.id DESC
+        LIMIT ?
+        """
+        rows = conn.execute(query, (limit,)).fetchall()
     conn.close()
     return [dict(r) for r in rows]
 

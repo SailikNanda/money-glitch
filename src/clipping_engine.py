@@ -77,18 +77,22 @@ class ClippingEngine:
                 if not download_target.exists():
                     logger.info(f"Downloading source video from {source_path}...")
                     ydl_opts = {
-                        "format": "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080]/best",
+                        "format": "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best",
                         "outtmpl": str(downloads_dir / f"{source_video_id}.%(ext)s"),
+                        "merge_output_format": "mp4",
                         "quiet": True,
-                        "max_filesize": 80 * 1024 * 1024,
-                        "socket_timeout": 20,
+                        "max_filesize": 400 * 1024 * 1024,
+                        "socket_timeout": 30,
                         "extractor_args": {"youtube": {"player_client": ["android", "web"]}},
                         "nocheckcertificate": True
                     }
                     try:
                         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                             ydl.download([source_path])
-                        matches = list(downloads_dir.glob(f"{source_video_id}.*"))
+                        matches = [
+                            f for f in downloads_dir.glob(f"{source_video_id}.*")
+                            if f.suffix.lower() in [".mp4", ".mkv", ".webm"] and not f.name.endswith((".part", ".ytdl"))
+                        ]
                         if matches:
                             source_file = matches[0]
                     except Exception as e:
@@ -459,7 +463,7 @@ class ClippingEngine:
                 "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
                 "eq=saturation=1.45:contrast=1.15,boxblur=25:5[bg];"
                 "[0:v]setpts=PTS-STARTPTS,"
-                "scale=1080:-1,"
+                "scale=1080:-2,"
                 "eq=saturation=1.35:contrast=1.12:brightness=0.01,"
                 "unsharp=5:5:0.9:5:5:0.4[fg];"
                 "[bg][fg]overlay=0:(H-h)/2[v_comp];"
@@ -501,7 +505,7 @@ class ClippingEngine:
         if meme_idx is not None:
             if is_greenscreen:
                 filter_complex += (
-                    f";[{meme_idx}:v]colorkey=0x00FF00:0.35:0.15,scale=720:-1[meme_fg];"
+                    f";[{meme_idx}:v]colorkey=0x00FF00:0.35:0.15,scale=720:-2[meme_fg];"
                     f"[v_base][meme_fg]overlay=(W-w)/2:(H-h)/2:enable='between(t,{climax_t},{climax_t + meme_duration})'[vout]"
                 )
             else:
@@ -512,8 +516,28 @@ class ClippingEngine:
         else:
             filter_complex += ";[v_base]null[vout]"
 
+        # Check if source video actually contains an audio stream
+        has_source_audio = False
+        try:
+            probe_cmd = [
+                "ffprobe", "-v", "error",
+                "-select_streams", "a:0",
+                "-show_entries", "stream=codec_type",
+                "-of", "json",
+                source_path
+            ]
+            probe_res = subprocess.run(probe_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if probe_res.returncode == 0:
+                pdata = json.loads(probe_res.stdout)
+                has_source_audio = len(pdata.get("streams", [])) > 0
+        except Exception:
+            has_source_audio = True
+
         # Audio mixing graph
-        audio_inputs = ["[0:a]aformat=sample_rates=48000:channel_layouts=stereo[a0]"]
+        if has_source_audio:
+            audio_inputs = ["[0:a]aformat=sample_rates=48000:channel_layouts=stereo[a0]"]
+        else:
+            audio_inputs = [f"anullsrc=channel_layout=stereo:sample_rate=48000:d={int(duration)}[a0]"]
         mix_inputs = ["[a0]"]
         delay_ms = int(climax_t * 1000)
 

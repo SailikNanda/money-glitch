@@ -68,11 +68,13 @@ class RetentionEditor:
         else:
             cond_expr = "+".join(zoom_conditions)
 
-        # Scale and crop using dynamic zoom expression
+        # Scale and dynamic crop punch-in using robust FFmpeg crop expressions
+        # This keeps audio perfectly in sync, avoids zoompan crashes, and preserves framerate
         vf_filter = (
-            f"scale=1080x1920,"
-            f"zoompan=z='if({cond_expr},{zoom_factor},1.0)':d=1:"
-            f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=60"
+            f"crop=w='if({cond_expr},in_w/{zoom_factor},in_w)':"
+            f"h='if({cond_expr},in_h/{zoom_factor},in_h)':"
+            f"x='(in_w-out_w)/2':y='(in_h-out_h)/2',"
+            f"scale=1080:1920"
         )
 
         cmd = [

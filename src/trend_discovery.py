@@ -32,7 +32,7 @@ logging.basicConfig(level=logging.INFO)
 
 class TrendDiscoveryEngine:
     def __init__(self):
-        self.api_key = os.getenv("YOUTUBE_DATA_API_KEY", "")
+        self.api_key = YOUTUBE_DATA_API_KEY or os.getenv("GOOGLE_API_KEY", "")
         self.youtube = None
         if self.api_key:
             try:
@@ -77,8 +77,8 @@ class TrendDiscoveryEngine:
             if self.youtube:
                 try:
                     batch_results = self._search_via_api(query, category_id, limit=max_per_category * 2)
-                except HttpError as err:
-                    logger.warning(f"YouTube API error: {err}. Falling back to yt-dlp search.")
+                except Exception as err:
+                    logger.warning(f"YouTube API search error ({type(err).__name__}: {err}). Falling back to yt-dlp search.")
                     self.youtube = None
                     batch_results = self._search_via_ytdlp(query, category_id, limit=max_per_category * 2)
             else:

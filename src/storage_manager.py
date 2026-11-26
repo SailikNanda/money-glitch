@@ -14,45 +14,65 @@ from .db import list_published, clear_all_data
 
 logger = logging.getLogger("StorageManager")
 
-def purge_temporary_stream_files(hard_purge: bool = True) -> Dict[str, Any]:
-    """Deletes ALL generated clips, sample videos, stream downloads (*.webm),
-    temporary exports, and scratch frames recursively so storage becomes 0.00 MB.
+def purge_temporary_stream_files(hard_purge: bool = False) -> Dict[str, Any]:
+    """Cleans up temporary stream downloads (*.webm, *.part), scratch frames,
+    and temporary intermediate renders.
+    Preserves finalized ready/queued exports in EXPORTS_DIR unless hard_purge=True.
     """
     freed_bytes = 0
     deleted_files: List[str] = []
     failed_files: List[str] = []
 
-    # Patterns to delete
-    patterns = [
-        "*.mp4",
+    # Intermediate / temporary patterns
+    temp_patterns = [
         "*.webm",
-        "*.mkv",
-        "*.avi",
-        "*.mov",
+        "*.part",
+        "*.ytdl",
         "*.tmp",
         "temp_*",
         "*_temp.*",
         "raw_*.*",
-        "*.jpg",
-        "*.jpeg",
-        "*.png",
         "verify_*.*",
         "frame_*.*",
         "meme_*.*"
     ]
 
-    search_dirs = [
-        CLIPS_DIR, 
-        EXPORTS_DIR, 
+    # If hard_purge is requested (e.g. from reset_all_data), also wipe all final video exports
+    all_patterns = temp_patterns + ["*.mp4", "*.mkv", "*.avi", "*.mov", "*.jpg", "*.jpeg", "*.png"]
+    active_patterns = all_patterns if hard_purge else temp_patterns
+
+    # Directories that should always be cleaned of all matching patterns
+    always_clean_dirs = [
+        CLIPS_DIR / "downloads",
         WORKSPACE_DIR / "scratch"
     ]
 
-    for d in search_dirs:
+    for d in always_clean_dirs:
         if not d.exists():
             continue
-        for pat in patterns:
-            # Recursive traversal to catch nested job folders
+        for pat in (all_patterns if hard_purge else ["*.*"]):
             for f in list(d.rglob(pat)):
+                if f.is_file():
+                    try:
+                        sz = f.stat().st_size
+                        f.unlink()
+                        freed_bytes += sz
+                        deleted_files.append(f.name)
+                        logger.info(f"Purged temporary download/scratch: {f.name} ({sz / (1024*1024):.2f} MB)")
+                    except Exception as e:
+                        failed_files.append(f.name)
+                        logger.warning(f"Could not delete {f.name}: {e}")
+
+    # For CLIPS_DIR and EXPORTS_DIR: only delete temporary renders unless hard_purge is True
+    managed_dirs = [CLIPS_DIR, EXPORTS_DIR]
+    for d in managed_dirs:
+        if not d.exists():
+            continue
+        for pat in active_patterns:
+            for f in list(d.glob(pat)):
+                # When hard_purge is False, never delete finalized short_*.mp4 exports
+                if not hard_purge and f.name.startswith("short_") and f.name.endswith(".mp4"):
+                    continue
                 if f.is_file():
                     try:
                         sz = f.stat().st_size
@@ -64,18 +84,19 @@ def purge_temporary_stream_files(hard_purge: bool = True) -> Dict[str, Any]:
                         failed_files.append(f.name)
                         logger.warning(f"Could not delete {f.name}: {e}")
 
-    # Also clean up any lingering test mp4s in root workspace directory
-    for root_file in WORKSPACE_DIR.glob("*.mp4"):
-        if root_file.is_file():
-            try:
-                sz = root_file.stat().st_size
-                root_file.unlink()
-                freed_bytes += sz
-                deleted_files.append(root_file.name)
-                logger.info(f"Purged root test video: {root_file.name} ({sz / (1024*1024):.2f} MB)")
-            except Exception as e:
-                failed_files.append(root_file.name)
-                logger.warning(f"Could not delete {root_file.name}: {e}")
+    # Also clean up any lingering test mp4s in root workspace directory if hard_purge
+    if hard_purge:
+        for root_file in WORKSPACE_DIR.glob("*.mp4"):
+            if root_file.is_file():
+                try:
+                    sz = root_file.stat().st_size
+                    root_file.unlink()
+                    freed_bytes += sz
+                    deleted_files.append(root_file.name)
+                    logger.info(f"Purged root test video: {root_file.name} ({sz / (1024*1024):.2f} MB)")
+                except Exception as e:
+                    failed_files.append(root_file.name)
+                    logger.warning(f"Could not delete {root_file.name}: {e}")
 
     # Ensure empty directory structure exists
     for d in [CLIPS_DIR, EXPORTS_DIR, CLIPS_DIR / "exports", CLIPS_DIR / "downloads"]:

@@ -32,6 +32,9 @@ from .config import (
     DEFAULT_PRIVACY_STATUS
 )
 
+# Allow HTTP for local desktop OAuth loopback redirect
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+
 logger = logging.getLogger("YouTubeUploader")
 logging.basicConfig(level=logging.INFO)
 
@@ -112,8 +115,12 @@ class YouTubeUploader:
                 logger.info(f"OAuth redirect server listening on http://localhost:{actual_port}/")
                 server.timeout = 300  # 5 minutes timeout
                 server.handle_request()
-                auth_resp = wsgi_app.last_request_uri.replace("http", "https")
-                flow.fetch_token(authorization_response=auth_resp)
+                auth_resp = wsgi_app.last_request_uri
+                try:
+                    flow.fetch_token(authorization_response=auth_resp)
+                except Exception:
+                    # Fallback if library expects https scheme
+                    flow.fetch_token(authorization_response=auth_resp.replace("http://", "https://"))
                 creds = flow.credentials
                 with open(YOUTUBE_TOKEN_PATH, "w", encoding="utf-8") as f:
                     f.write(creds.to_json())

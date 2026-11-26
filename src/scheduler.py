@@ -159,6 +159,8 @@ class AutonomousScheduler:
                 last_slot_str = max(q["scheduled_time"] for q in existing_queue)
                 try:
                     last_slot = datetime.fromisoformat(last_slot_str)
+                    if last_slot.tzinfo is None:
+                        last_slot = last_slot.replace(tzinfo=timezone.utc)
                 except Exception:
                     last_slot = datetime.now(timezone.utc)
             else:
@@ -174,26 +176,26 @@ class AutonomousScheduler:
         results["auto_publish_enabled"] = auto_publish
         if not auto_publish:
             logger.info("Auto-publishing is DISABLED in settings. Clips staged in ready queue.")
-            purge_temporary_stream_files()
+            purge_temporary_stream_files(hard_purge=False)
             return results
 
         # Check daily upload limit & spacing
         if not can_upload:
             logger.info(f"Upload pacing check: {wait_reason}")
-            purge_temporary_stream_files()
+            purge_temporary_stream_files(hard_purge=False)
             return results
 
         # Get highest scoring ready or queued clip using Zigzag Diversification
         ready_clips = [c for c in list_clips(limit=20) if c.get("status") in ("ready", "queued")]
         if not ready_clips:
             logger.info("No ready clips in queue for publication.")
-            purge_temporary_stream_files()
+            purge_temporary_stream_files(hard_purge=False)
             return results
 
         top_clip = self._select_zigzag_clip_to_upload(ready_clips)
         if not top_clip:
             logger.info("Could not resolve eligible zigzag clip for publication.")
-            purge_temporary_stream_files()
+            purge_temporary_stream_files(hard_purge=False)
             return results
 
         logger.info(f"Selected Zigzag clip for publication: ID {top_clip['id']} - {top_clip['title']} (Virality: {top_clip['virality_score']})")
@@ -225,7 +227,7 @@ class AutonomousScheduler:
 
         # Step 5: Automatic Storage Cleanup (Auto-delete raw stream downloads & temp renders)
         try:
-            purge_res = purge_temporary_stream_files()
+            purge_res = purge_temporary_stream_files(hard_purge=False)
             results["storage_purged_mb"] = purge_res.get("freed_mb", 0)
         except Exception as e:
             logger.warning(f"Storage purge exception: {e}")
@@ -264,6 +266,8 @@ class AutonomousScheduler:
         """
         Calculates the next optimal viral release slot respecting 4-hour spacing.
         """
+        if from_dt.tzinfo is None:
+            from_dt = from_dt.replace(tzinfo=timezone.utc)
         from_local = from_dt.astimezone(self.tz)
         target_slots = [
             (12, 0),   # 12:00 PM EST
@@ -305,12 +309,14 @@ class AutonomousScheduler:
             last_pub_time_str = published_list[0].get("published_at", "")
             try:
                 last_dt = datetime.fromisoformat(last_pub_time_str)
+                if last_dt.tzinfo is None:
+                    last_dt = last_dt.replace(tzinfo=timezone.utc)
                 gap_hours = (now - last_dt).total_seconds() / 3600.0
                 if gap_hours < MIN_UPLOAD_SPACING_HOURS:
                     remaining = round(MIN_UPLOAD_SPACING_HOURS - gap_hours, 1)
                     return False, f"Upload spacing active: {remaining} hours remaining before next upload."
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Error checking upload spacing: {e}")
 
         # 3. Check Peak Viral Engagement Window (America/New_York Time)
         if ENFORCE_VIRAL_HOURS:
