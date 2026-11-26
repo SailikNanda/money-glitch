@@ -334,6 +334,12 @@
       const publishedToday = liveState?.published_today ?? 0;
       const isParallelActive = liveState?.is_active || false;
       const parallelProgress = liveState?.progress || 0;
+      const autoPublishEnabled = (liveState?.auto_publish_enabled !== undefined && liveState?.auto_publish_enabled !== null) 
+        ? Boolean(liveState.auto_publish_enabled) 
+        : true;
+      const emergencyStop = (liveState?.emergency_stop !== undefined && liveState?.emergency_stop !== null) 
+        ? Boolean(liveState.emergency_stop) 
+        : false;
       const storageMb = (liveState?.storage_stats?.clips_storage_mb !== undefined && liveState?.storage_stats?.clips_storage_mb !== null)
         ? Number(liveState.storage_stats.clips_storage_mb).toFixed(2)
         : "0.00";
@@ -444,6 +450,36 @@
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
                 <span>Clean ({storageMb} MB)</span>
+              </button>
+
+              {/* Autonomous Publishing Toggle Button */}
+              <button 
+                onClick={() => triggerAction("toggle_autopublish")}
+                disabled={actionLoading}
+                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg flex items-center gap-1.5 transition-all border ${
+                  autoPublishEnabled 
+                    ? 'bg-emerald-950/70 text-emerald-300 border-emerald-500/60 shadow-sm shadow-emerald-500/20 hover:bg-emerald-900/80' 
+                    : 'bg-slate-900/80 text-slate-400 border-slate-700/80 hover:text-slate-200 hover:border-slate-600'
+                }`}
+                title="Toggle Autonomous YouTube Publishing (ON = automatically publish queued clips, OFF = keep in queue)"
+              >
+                <span className={`w-2 h-2 rounded-full ${autoPublishEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`}></span>
+                <span>Auto-Publish: <span className="font-extrabold uppercase">{autoPublishEnabled ? 'ON' : 'OFF'}</span></span>
+              </button>
+
+              {/* Emergency Stop Toggle Button */}
+              <button 
+                onClick={() => triggerAction("toggle_emergency_stop")}
+                disabled={actionLoading}
+                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg flex items-center gap-1.5 transition-all border ${
+                  emergencyStop 
+                    ? 'bg-rose-950/90 text-rose-300 border-rose-500/80 shadow-md shadow-rose-500/30 animate-pulse hover:bg-rose-900' 
+                    : 'bg-slate-900/80 text-slate-400 border-slate-700/80 hover:text-rose-400 hover:border-rose-500/40'
+                }`}
+                title="Emergency Stop: Halt all autonomous actions immediately"
+              >
+                <span className={`w-2 h-2 rounded-full ${emergencyStop ? 'bg-rose-400 animate-ping' : 'bg-slate-500'}`}></span>
+                <span>E-Stop: <span className="font-extrabold uppercase">{emergencyStop ? 'ACTIVE' : 'READY'}</span></span>
               </button>
 
               {/* Trigger Swarm */}

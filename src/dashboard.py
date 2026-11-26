@@ -289,6 +289,11 @@ async def get_live_state():
     LIVE_STATE["topic_focus"] = get_setting("topic_focus", "dynamic_trends")
     LIVE_STATE["storage_stats"] = get_storage_stats()
     
+    auto_pub = get_setting("auto_publish_enabled", 1)
+    LIVE_STATE["auto_publish_enabled"] = bool(int(auto_pub)) if str(auto_pub).isdigit() else bool(auto_pub)
+    em_stop = get_setting("emergency_stop", 0)
+    LIVE_STATE["emergency_stop"] = bool(int(em_stop)) if str(em_stop).isdigit() else bool(em_stop)
+    
     # Real video technical specifications
     LIVE_STATE["video_specs"] = {
         "resolution": "1080x1920",
@@ -385,9 +390,39 @@ async def handle_action(req: ActionRequest, background_tasks: BackgroundTasks):
         return {"success": True, "message": "Multi-Agent production and autonomous cycle running"}
 
     elif action == "trigger_actual_upload":
-        background_tasks.add_task(scheduler.run_full_pipeline_iteration)
-        background_tasks.add_task(_simulate_visual_production_cycle)
-        return {"success": True, "message": "Live upload to YouTube channel Clivox triggered"}
+        ready_clips = [c for c in list_clips(limit=10) if c.get("status") in ("ready", "queued")]
+        if ready_clips:
+            top_clip = ready_clips[0]
+            log_event("CLIVOX", f"Direct upload initiated for '{top_clip['title']}'...")
+
+            def _do_direct_upload(clip_data):
+                try:
+                    res = uploader.upload_short(
+                        video_path=clip_data["clip_file"],
+                        title=clip_data["title"],
+                        description=clip_data["description"],
+                        tags=clip_data["hashtags"].split()
+                    )
+                    if res.get("success"):
+                        record_published(
+                            clip_id=clip_data["id"],
+                            youtube_video_id=res["video_id"],
+                            youtube_url=res["youtube_url"],
+                            title=clip_data["title"]
+                        )
+                        log_event("CLIVOX", f"SUCCESS! Published Short to YouTube: {res['youtube_url']}")
+                    else:
+                        log_event("CLIVOX", f"Direct upload error: {res.get('error')}")
+                except Exception as e:
+                    log_event("CLIVOX", f"Direct upload exception: {str(e)}")
+
+            background_tasks.add_task(_do_direct_upload, top_clip)
+            background_tasks.add_task(_simulate_visual_production_cycle)
+            return {"success": True, "message": f"Uploading '{top_clip['title']}' directly to @clivox-era..."}
+        else:
+            background_tasks.add_task(scheduler.run_full_pipeline_iteration)
+            background_tasks.add_task(_simulate_visual_production_cycle)
+            return {"success": True, "message": "No pre-rendered clip found. Initiating full clipping and upload cycle..."}
 
     elif action in ["purge_storage", "reset_all_data"]:
         res = reset_all_data()
@@ -416,16 +451,22 @@ async def handle_action(req: ActionRequest, background_tasks: BackgroundTasks):
             return {"success": False, "message": f"Failed to start OAuth flow: {str(e)}"}
 
     elif action == "toggle_autopublish":
-        current = get_setting("auto_publish_enabled", True)
-        new_val = not current
-        set_setting("auto_publish_enabled", new_val)
-        return {"success": True, "auto_publish_enabled": new_val}
+        current = get_setting("auto_publish_enabled", 1)
+        curr_bool = bool(int(current)) if str(current).isdigit() else bool(current)
+        new_val = not curr_bool
+        set_setting("auto_publish_enabled", 1 if new_val else 0)
+        LIVE_STATE["auto_publish_enabled"] = new_val
+        log_event("SYSTEM", f"Auto-Publish switched to {'ON' if new_val else 'OFF'}")
+        return {"success": True, "auto_publish_enabled": new_val, "message": f"Auto-Publish switched to {'ON' if new_val else 'OFF'}"}
 
     elif action == "toggle_emergency_stop":
-        current = get_setting("emergency_stop", False)
-        new_val = not current
-        set_setting("emergency_stop", new_val)
-        return {"success": True, "emergency_stop": new_val}
+        current = get_setting("emergency_stop", 0)
+        curr_bool = bool(int(current)) if str(current).isdigit() else bool(current)
+        new_val = not curr_bool
+        set_setting("emergency_stop", 1 if new_val else 0)
+        LIVE_STATE["emergency_stop"] = new_val
+        log_event("SYSTEM", f"Emergency Stop {'ACTIVATED' if new_val else 'DEACTIVATED'}")
+        return {"success": True, "emergency_stop": new_val, "message": f"Emergency Stop {'ACTIVATED' if new_val else 'DEACTIVATED'}"}
 
     elif action == "save_prompt" and req.notes:
         set_setting("custom_prompt", req.notes)
