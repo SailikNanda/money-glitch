@@ -48,14 +48,14 @@ logger = logging.getLogger("Scheduler")
 logging.basicConfig(level=logging.INFO)
 
 class AutonomousScheduler:
-    def __init__(self):
+    def __init__(self, youtube_uploader: Optional[YouTubeUploader] = None):
         self.tz = ZoneInfo(SCHEDULING_TIMEZONE)
         self.discovery_engine = TrendDiscoveryEngine()
         self.clipping_engine = ClippingEngine()
         self.invideo_enhancer = InvideoEnhancer()
-        self.youtube_uploader = YouTubeUploader()
+        self.youtube_uploader = youtube_uploader or YouTubeUploader()
 
-    def run_full_pipeline_iteration(self) -> Dict[str, Any]:
+    def run_full_pipeline_iteration(self, expected_auth_version: Optional[int] = None) -> Dict[str, Any]:
         """
         Executes one full iteration of the autonomous cycle:
         1. Checks safety flags (Emergency Stop)
@@ -185,52 +185,76 @@ class AutonomousScheduler:
             purge_temporary_stream_files(hard_purge=False)
             return results
 
-        # Get highest scoring ready or queued clip using Zigzag Diversification
-        ready_clips = [c for c in list_clips(limit=20) if c.get("status") in ("ready", "queued")]
-        if not ready_clips:
-            logger.info("No ready clips in queue for publication.")
+        # Acquire shared publication reservation across scheduler and direct upload
+        pub_res_id = self.youtube_uploader.acquire_publication_reservation()
+        if not pub_res_id:
+            logger.info("Publication slot already reserved by concurrent upload. Skipping upload this iteration.")
             purge_temporary_stream_files(hard_purge=False)
             return results
 
-        top_clip = self._select_zigzag_clip_to_upload(ready_clips)
-        if not top_clip:
-            logger.info("Could not resolve eligible zigzag clip for publication.")
-            purge_temporary_stream_files(hard_purge=False)
-            return results
-
-        logger.info(f"Selected Zigzag clip for publication: ID {top_clip['id']} - {top_clip['title']} (Virality: {top_clip['virality_score']})")
-
-        # Optional Invideo polish & spec verification
-        enhanced = self.invideo_enhancer.enhance_clip(top_clip["clip_file"])
-        final_video_path = enhanced.get("file_path", top_clip["clip_file"])
-
-        # Execute YouTube upload
-        upload_res = self.youtube_uploader.upload_short(
-            video_path=final_video_path,
-            title=top_clip["title"],
-            description=top_clip["description"],
-            tags=top_clip["hashtags"].split()
-        )
-
-        if upload_res.get("success"):
-            record_published(
-                clip_id=top_clip["id"],
-                youtube_video_id=upload_res["video_id"],
-                youtube_url=upload_res["youtube_url"],
-                title=top_clip["title"]
-            )
-            results["uploaded"] += 1
-            logger.info(f"Autonomous upload succeeded: {upload_res['youtube_url']}")
-        else:
-            logger.error(f"Upload failed: {upload_res.get('error')}")
-            results["upload_error"] = upload_res.get("error")
-
-        # Step 5: Automatic Storage Cleanup (Auto-delete raw stream downloads & temp renders)
         try:
-            purge_res = purge_temporary_stream_files(hard_purge=False)
-            results["storage_purged_mb"] = purge_res.get("freed_mb", 0)
-        except Exception as e:
-            logger.warning(f"Storage purge exception: {e}")
+            # Recheck upload pacing against current publication ledger under the held reservation
+            can_upload_reserved, wait_reason_reserved = self._check_upload_pacing()
+            results["pacing"] = {
+                "can_upload": can_upload_reserved,
+                "wait_reason": wait_reason_reserved,
+                "daily_max": DAILY_MAX_PUBLISHED_SHORTS,
+                "min_spacing_hours": MIN_UPLOAD_SPACING_HOURS
+            }
+            if not can_upload_reserved:
+                logger.info(f"Upload pacing check under held reservation blocked publication: {wait_reason_reserved}")
+                purge_temporary_stream_files(hard_purge=False)
+                return results
+
+            # Get highest scoring ready or queued clip using Zigzag Diversification
+            ready_clips = [c for c in list_clips(limit=20) if c.get("status") in ("ready", "queued")]
+            if not ready_clips:
+                logger.info("No ready clips in queue for publication.")
+                purge_temporary_stream_files(hard_purge=False)
+                return results
+
+            top_clip = self._select_zigzag_clip_to_upload(ready_clips)
+            if not top_clip:
+                logger.info("Could not resolve eligible zigzag clip for publication.")
+                purge_temporary_stream_files(hard_purge=False)
+                return results
+
+            logger.info(f"Selected Zigzag clip for publication: ID {top_clip['id']} - {top_clip['title']} (Virality: {top_clip['virality_score']})")
+
+            # Optional Invideo polish & spec verification
+            enhanced = self.invideo_enhancer.enhance_clip(top_clip["clip_file"])
+            final_video_path = enhanced.get("file_path", top_clip["clip_file"])
+
+            # Execute YouTube upload
+            upload_res = self.youtube_uploader.upload_short(
+                video_path=final_video_path,
+                title=top_clip["title"],
+                description=top_clip["description"],
+                tags=top_clip["hashtags"].split(),
+                expected_auth_version=expected_auth_version
+            )
+
+            if upload_res.get("success"):
+                record_published(
+                    clip_id=top_clip["id"],
+                    youtube_video_id=upload_res["video_id"],
+                    youtube_url=upload_res["youtube_url"],
+                    title=top_clip["title"]
+                )
+                results["uploaded"] += 1
+                logger.info(f"Autonomous upload succeeded: {upload_res['youtube_url']}")
+            else:
+                logger.error(f"Upload failed: {upload_res.get('error')}")
+                results["upload_error"] = upload_res.get("error")
+
+            # Step 5: Automatic Storage Cleanup (Auto-delete raw stream downloads & temp renders)
+            try:
+                purge_res = purge_temporary_stream_files(hard_purge=False)
+                results["storage_purged_mb"] = purge_res.get("freed_mb", 0)
+            except Exception as e:
+                logger.warning(f"Storage purge exception: {e}")
+        finally:
+            self.youtube_uploader.release_publication_reservation(pub_res_id)
 
         return results
 

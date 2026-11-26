@@ -235,12 +235,8 @@
             }
             if (data.custom_prompt) setPromptText(data.custom_prompt);
             if (data.topic_focus) setTopicFocus(data.topic_focus);
-            if (data.available_videos && data.available_videos.length > 0) {
-              if (!selectedVideo || !data.available_videos.includes(selectedVideo)) {
-                setSelectedVideo(data.available_videos[0]);
-              }
-            } else {
-              setSelectedVideo("");
+            if (data.available_videos) {
+              setSelectedVideo(prev => (prev && data.available_videos.includes(prev)) ? prev : "");
             }
           }
         } catch (e) {
@@ -334,6 +330,12 @@
       const publishedToday = liveState?.published_today ?? 0;
       const isParallelActive = liveState?.is_active || false;
       const parallelProgress = liveState?.progress || 0;
+      const availableVideos = liveState?.available_videos || [];
+      const currentVideo = (selectedVideo && availableVideos.includes(selectedVideo))
+        ? selectedVideo
+        : (liveState?.video_file && availableVideos.includes(liveState.video_file))
+        ? liveState.video_file
+        : (availableVideos.length > 0 ? availableVideos[0] : "");
       const autoPublishEnabled = (liveState?.auto_publish_enabled !== undefined && liveState?.auto_publish_enabled !== null) 
         ? Boolean(liveState.auto_publish_enabled) 
         : true;
@@ -347,6 +349,17 @@
       // Real Virality Scores from latest clip
       const realVirality = liveState?.virality_score || 93.0;
       const realHook = liveState?.hook_quality || 92.0;
+
+      useEffect(() => {
+        if (videoRef.current) {
+          const playPromise = videoRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(err => {
+              console.log("Autoplay policy or video pending user action:", err);
+            });
+          }
+        }
+      }, [currentVideo]);
 
       const agents = liveState?.agents || {
         scout: { name: "Agent Scout", role: "Stream Radar", status: "idle", task: "50 Streams in Radar | Top: IShowSpeed" },
@@ -496,7 +509,7 @@
 
               {/* Direct Upload */}
               <button 
-                onClick={() => triggerAction("trigger_actual_upload")}
+                onClick={() => triggerAction("trigger_actual_upload", { expected_auth_version: liveState?.channel_info?.auth_version })}
                 disabled={actionLoading}
                 className="liquid-btn-emerald px-3 py-1 text-[11px] font-bold flex items-center gap-1.5"
               >
@@ -540,16 +553,17 @@
 
                 {/* Video Switcher Dropdown */}
                 <select 
-                  value={selectedVideo}
+                  value={currentVideo}
                   onChange={(e) => setSelectedVideo(e.target.value)}
-                  className="w-full px-2 py-1 text-[11px] font-semibold rounded-lg bg-slate-900 border border-slate-700 text-slate-200"
+                  disabled={availableVideos.length === 0}
+                  className="w-full px-2 py-1 text-[11px] font-semibold rounded-lg bg-slate-900 border border-slate-700 text-slate-200 disabled:opacity-50"
                 >
-                  {(liveState?.available_videos && liveState.available_videos.length > 0) ? (
-                    liveState.available_videos.map((vid) => (
+                  {availableVideos.length > 0 ? (
+                    availableVideos.map((vid) => (
                       <option key={vid} value={vid}>{vid}</option>
                     ))
                   ) : (
-                    <option value="">Vault Cleared (0.00 MB - Standing By)</option>
+                    <option value="">No Videos in Vault (0.00 MB Clean)</option>
                   )}
                 </select>
               </div>
@@ -557,16 +571,17 @@
               {/* Compact Smartphone Mockup (Fits in viewport) */}
               <div className="relative mx-auto w-full max-w-[210px] aspect-[9/16] rounded-[24px] bg-black p-1.5 shadow-xl border-2 border-slate-800 my-1 overflow-hidden">
                 <div className={`w-full h-full rounded-[18px] overflow-hidden bg-black relative flex flex-col items-center justify-center ${isShaking ? 'animate-bounce' : ''}`}>
-                  {selectedVideo && selectedVideo !== "" && liveState?.available_videos?.length > 0 ? (
+                  {currentVideo ? (
                     <>
                       <video
                         ref={videoRef}
-                        key={selectedVideo}
-                        src={`/video/${encodeURIComponent(selectedVideo)}`}
+                        key={currentVideo}
+                        src={`/video/${encodeURIComponent(currentVideo)}`}
                         autoPlay
                         loop
                         muted={isMuted}
                         playsInline
+                        controls={true}
                         className="w-full h-full object-cover"
                       />
                       {/* Climax Tag */}
@@ -624,6 +639,56 @@
               
               {/* NLE Timeline with 5 Autonomous Moving Cursors */}
               <div className="liquid-glass p-2.5 space-y-1.5 flex-1 flex flex-col justify-between min-h-0">
+                
+                {/* Dynamic Live Phase Banner */}
+                <div className={`px-3 py-1.5 rounded-lg border transition-all flex items-center justify-between gap-3 text-xs font-mono shrink-0 ${
+                  liveState?.stage === 'STAGE_RESEARCHING'
+                    ? 'bg-cyan-950/90 border-cyan-500/70 text-cyan-200 shadow-lg shadow-cyan-500/20 animate-pulse'
+                    : liveState?.stage === 'STAGE_CLIPPING'
+                    ? 'bg-violet-950/90 border-violet-500/70 text-violet-200 shadow-lg shadow-violet-500/20 animate-pulse'
+                    : liveState?.stage === 'STAGE_PACKAGING'
+                    ? 'bg-amber-950/90 border-amber-500/70 text-amber-200 shadow-lg shadow-amber-500/20 animate-pulse'
+                    : liveState?.stage === 'STAGE_UPLOADING'
+                    ? 'bg-emerald-950/95 border-emerald-400 text-emerald-200 shadow-xl shadow-emerald-500/30 animate-bounce'
+                    : liveState?.stage === 'STAGE_FAILED'
+                    ? 'bg-rose-950/90 border-rose-500/70 text-rose-200 shadow-lg shadow-rose-500/20 animate-pulse'
+                    : 'bg-slate-900/80 border-slate-800 text-slate-300'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${
+                      liveState?.stage === 'STAGE_RESEARCHING' ? 'bg-cyan-400 animate-ping' :
+                      liveState?.stage === 'STAGE_CLIPPING' ? 'bg-violet-400 animate-ping' :
+                      liveState?.stage === 'STAGE_PACKAGING' ? 'bg-amber-400 animate-ping' :
+                      liveState?.stage === 'STAGE_UPLOADING' ? 'bg-emerald-400 animate-ping' :
+                      liveState?.stage === 'STAGE_FAILED' ? 'bg-rose-400 animate-ping' :
+                      liveState?.emergency_stop ? 'bg-rose-500' :
+                      'bg-emerald-400 animate-pulse'
+                    }`}></span>
+                    <span className="font-extrabold text-[11px] tracking-wide">
+                      {liveState?.stage === 'STAGE_RESEARCHING' && "🔍 PHASE 1: RESEARCHING TRENDS — Scouting 24 Categories across YouTube Feeds..."}
+                      {liveState?.stage === 'STAGE_CLIPPING' && "✂️ PHASE 2: CLIPPING & EDITING — Slicing 9:16 Vertical 60FPS, Kinetic Subs & Phonk Ducking..."}
+                      {liveState?.stage === 'STAGE_PACKAGING' && "🎬 PHASE 3: PACKAGING & SCORING — Scoring Virality 96.0 & Packaging 9:16 Master..."}
+                      {liveState?.stage === 'STAGE_UPLOADING' && `🚀 UPLOADING TO YOUTUBE — Dispatching Short${channelHandle ? ` to ${channelHandle}` : channelTitle ? ` to ${channelTitle}` : ''} via Google OAuth...`}
+                      {liveState?.stage === 'STAGE_FAILED' && "⚠️ PIPELINE OPERATION FAILED — Check Channel Status & Telemetry Logs"}
+                      {(!liveState?.stage || liveState?.stage === 'IDLE' || liveState?.stage === 'STAGE_COMPLETED' || liveState?.stage === 'COMPLETED') && (
+                        liveState?.emergency_stop 
+                          ? "🛑 EMERGENCY STOP ACTIVE — Subsequent Iterations Halted (No New Runs Will Launch)"
+                          : "✨ AUTONOMOUS SWARM ACTIVE — 5 Tracks Continuously Animated & Monitoring"
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {liveState?.emergency_stop && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-800">
+                        STOP ARMED (BLOCKS NEW CYCLES)
+                      </span>
+                    )}
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-800/80 text-cyan-300 border border-slate-700">
+                      {isParallelActive ? `${parallelProgress}% Complete` : "AUTONOMOUS LOOP ACTIVE"}
+                    </span>
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between border-b border-slate-700/60 pb-1 shrink-0">
                   <div className="flex items-center gap-1.5">
                     <div className={`w-2 h-2 rounded-full ${isParallelActive ? 'bg-cyan-400 animate-ping' : 'bg-slate-500'}`}></div>
@@ -666,78 +731,71 @@
                   <div className="flex items-center gap-2 h-7 relative">
                     <span className="w-16 text-[8px] font-mono text-cyan-400 font-bold shrink-0">T1: SCOUT</span>
                     <div className="h-full flex-1 bg-slate-900/90 rounded border border-slate-800 relative flex items-center px-1 overflow-visible">
-                      {isParallelActive ? (
-                        <motion.div 
-                          animate={{ 
-                            width: ["85%", "85%", "85%", "56%", "68%", "68%", "85%"] 
-                          }}
-                          transition={{ repeat: Infinity, duration: 8, ease: "easeInOut", times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
-                          className="h-[85%] bg-cyan-950/40 border border-cyan-500/50 rounded flex items-center justify-between px-2 text-[8px] font-mono text-cyan-200 relative overflow-hidden"
-                        >
-                          <span className="truncate">IShowSpeed_GTA6_Stream_37M_1080x1920.mp4</span>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <span className="text-[7px] bg-cyan-500/20 text-cyan-300 px-1 rounded border border-cyan-500/30">
-                              Trim: 00:05 - 00:25s
-                            </span>
-                            <motion.div 
-                              animate={{ 
-                                backgroundColor: ["rgba(6,182,212,0.3)", "rgba(6,182,212,0.3)", "rgba(6,182,212,1)", "rgba(6,182,212,1)", "rgba(6,182,212,1)", "rgba(6,182,212,0.3)", "rgba(6,182,212,0.3)"],
-                                scaleY: [1, 1, 1.3, 1.3, 1.3, 1, 1]
-                              }}
-                              transition={{ repeat: Infinity, duration: 8, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
-                              className="w-1.5 h-4 rounded-sm bg-cyan-400"
-                            />
-                          </div>
-                        </motion.div>
-                      ) : (
-                        <div className="h-[85%] border border-dashed border-slate-700/60 rounded flex items-center justify-between px-2 text-[8px] font-mono text-slate-500 w-full bg-slate-900/30">
-                          <div className="flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-                            <span>[Empty Track: Stream Ingestion Idle — Standing By]</span>
-                          </div>
-                          <span className="text-[7px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700/80">
-                            Parked (Standby)
+                      <motion.div 
+                        animate={isParallelActive ? { 
+                          width: ["85%", "85%", "85%", "56%", "68%", "68%", "85%"] 
+                        } : {
+                          width: ["85%", "88%", "85%"],
+                          opacity: [0.92, 1, 0.92]
+                        }}
+                        transition={{ 
+                          repeat: Infinity, 
+                          duration: isParallelActive ? 8 : 12, 
+                          ease: "easeInOut", 
+                          ...(isParallelActive ? { times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : {})
+                        }}
+                        className="h-[85%] bg-cyan-950/40 border border-cyan-500/50 rounded flex items-center justify-between px-2 text-[8px] font-mono text-cyan-200 relative overflow-hidden shadow-sm shadow-cyan-950"
+                      >
+                        <span className="truncate">IShowSpeed_GTA6_Stream_37M_1080x1920.mp4</span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className="text-[7px] bg-cyan-500/20 text-cyan-300 px-1 rounded border border-cyan-500/30">
+                            {isParallelActive ? "Trim: 00:05 - 00:25s" : "Radar: Locked"}
                           </span>
+                          <motion.div 
+                            animate={{ 
+                              scaleY: [1, 1.3, 1],
+                              opacity: [0.6, 1, 0.6]
+                            }}
+                            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                            className="w-1.5 h-4 rounded-sm bg-cyan-400"
+                          />
                         </div>
-                      )}
+                      </motion.div>
 
-                      {/* Scout Cursor: parked at x: 8 when idle; actively dragging when isParallelActive */}
+                      {/* Scout Cursor: continuous autonomous patrol */}
                       <motion.div
                         className="absolute z-30 pointer-events-none flex items-center gap-1.5 -top-1"
                         animate={isParallelActive ? { 
                           x: [40, 270, 270, 180, 215, 215, 40],
                           y: [0, 0, 1, 0, 0, 0, 0]
                         } : {
-                          x: 8,
-                          y: 0
+                          x: [25, 240, 130, 280, 25],
+                          y: [0, 0, 0, 0, 0]
                         }}
-                        transition={isParallelActive ? { repeat: Infinity, duration: 8, ease: "easeInOut", times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : { duration: 0.3 }}
+                        transition={{ 
+                          repeat: Infinity, 
+                          duration: isParallelActive ? 8 : 14, 
+                          ease: "easeInOut", 
+                          ...(isParallelActive ? { times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : {})
+                        }}
                       >
-                        {isParallelActive && (
-                          <motion.div 
-                            animate={{ scale: [0, 0, 1.8, 0, 0, 0, 0], opacity: [0, 0, 0.9, 0, 0, 0, 0] }}
-                            transition={{ repeat: Infinity, duration: 8, times: [0, 0.24, 0.30, 0.35, 0.72, 0.88, 1.0] }}
-                            className="absolute -left-1 -top-1 w-6 h-6 rounded-full border-2 border-cyan-400 bg-cyan-400/30 pointer-events-none"
-                          />
-                        )}
+                        <motion.div 
+                          animate={{ scale: [1, 1.6, 1], opacity: [0.3, 0.8, 0.3] }}
+                          transition={{ repeat: Infinity, duration: 2 }}
+                          className="absolute -left-1 -top-1 w-5 h-5 rounded-full border border-cyan-400 bg-cyan-400/20 pointer-events-none"
+                        />
                         
-                        <svg className={`w-3.5 h-3.5 ${isParallelActive ? 'text-cyan-400 drop-shadow-[0_2px_4px_rgba(6,182,212,0.8)]' : 'text-slate-600'}`} viewBox="0 0 24 24" fill="currentColor">
+                        <svg className="w-3.5 h-3.5 text-cyan-400 drop-shadow-[0_2px_4px_rgba(6,182,212,0.8)]" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M4 2l16 16-6.5.5-3.5 5.5-2.5-1 3.5-5.5L4 17V2z"/>
                         </svg>
                         
                         <div className="flex flex-col">
-                          <span className={`px-1.5 py-0.2 text-[7px] font-black uppercase rounded font-mono shadow-md whitespace-nowrap ${isParallelActive ? 'bg-cyan-400 text-black' : 'bg-slate-900/90 text-slate-500 border border-slate-800'}`}>
-                            Scout {isParallelActive ? '' : '(Parked)'}
+                          <span className={`px-1.5 py-0.2 text-[7px] font-black uppercase rounded font-mono shadow-md whitespace-nowrap ${isParallelActive ? 'bg-cyan-400 text-black' : 'bg-cyan-950 text-cyan-300 border border-cyan-500/50'}`}>
+                            Scout {isParallelActive ? '• Trimming' : '• Scanning'}
                           </span>
-                          {isParallelActive && (
-                            <motion.span 
-                              animate={{ opacity: [0, 0, 1, 1, 1, 0, 0], scale: [0.8, 0.8, 1, 1, 1, 0.8, 0.8] }}
-                              transition={{ repeat: Infinity, duration: 8, times: [0, 0.22, 0.28, 0.60, 0.72, 0.80, 1.0] }}
-                              className="text-[6.5px] font-bold text-cyan-200 bg-cyan-950/90 px-1 rounded border border-cyan-500/60 shadow whitespace-nowrap mt-0.5"
-                            >
-                              Trimming: 00:25s
-                            </motion.span>
-                          )}
+                          <span className="text-[6.5px] font-bold text-cyan-200 bg-cyan-950/90 px-1 rounded border border-cyan-500/60 shadow whitespace-nowrap mt-0.5">
+                            {isParallelActive ? 'Trimming: 00:25s' : '50 Streams Radar'}
+                          </span>
                         </div>
                       </motion.div>
                     </div>
@@ -747,31 +805,28 @@
                   <div className="flex items-center gap-2 h-7 relative">
                     <span className="w-16 text-[8px] font-mono text-violet-400 font-bold shrink-0">T2: CLIPPER</span>
                     <div className="h-full flex-1 bg-slate-900/90 rounded border border-slate-800 relative flex items-center px-1 overflow-visible">
-                      {isParallelActive ? (
-                        <motion.div 
-                          animate={{ 
-                            x: [0, 0, 0, 80, 110, 110, 0],
-                            borderColor: ["rgba(168,85,247,0.4)", "rgba(168,85,247,0.4)", "rgba(168,85,247,1)", "rgba(168,85,247,1)", "rgba(168,85,247,1)", "rgba(168,85,247,0.4)", "rgba(168,85,247,0.4)"]
-                          }}
-                          transition={{ repeat: Infinity, duration: 8.5, ease: "easeInOut", delay: 0.6, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
-                          className="h-[85%] bg-violet-950/40 border rounded flex items-center justify-between px-2 text-[8px] font-mono text-violet-200 w-[55%] relative"
-                        >
-                          <span className="truncate">Facecam_Panel_Top_0_60_Detect.h264</span>
-                          <span className="text-[7px] bg-violet-500/20 text-violet-300 px-1 rounded border border-violet-500/30 shrink-0">
-                            Split @ 00:14s
-                          </span>
-                        </motion.div>
-                      ) : (
-                        <div className="h-[85%] border border-dashed border-slate-700/60 rounded flex items-center justify-between px-2 text-[8px] font-mono text-slate-500 w-full bg-slate-900/30">
-                          <div className="flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-                            <span>[Empty Track: Facecam & 9:16 Canvas Slicer Idle — Standing By]</span>
-                          </div>
-                          <span className="text-[7px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700/80">
-                            Parked (Standby)
-                          </span>
-                        </div>
-                      )}
+                      <motion.div 
+                        animate={isParallelActive ? { 
+                          x: [0, 0, 0, 80, 110, 110, 0],
+                          borderColor: ["rgba(168,85,247,0.4)", "rgba(168,85,247,0.4)", "rgba(168,85,247,1)", "rgba(168,85,247,1)", "rgba(168,85,247,1)", "rgba(168,85,247,0.4)", "rgba(168,85,247,0.4)"]
+                        } : {
+                          x: [0, 20, 0],
+                          borderColor: ["rgba(168,85,247,0.5)", "rgba(168,85,247,0.9)", "rgba(168,85,247,0.5)"]
+                        }}
+                        transition={{ 
+                          repeat: Infinity, 
+                          duration: isParallelActive ? 8.5 : 10, 
+                          ease: "easeInOut", 
+                          delay: 0.4,
+                          ...(isParallelActive ? { times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : {})
+                        }}
+                        className="h-[85%] bg-violet-950/40 border rounded flex items-center justify-between px-2 text-[8px] font-mono text-violet-200 w-[55%] relative shadow-sm shadow-violet-950"
+                      >
+                        <span className="truncate">Facecam_Panel_Top_0_60_Detect.h264</span>
+                        <span className="text-[7px] bg-violet-500/20 text-violet-300 px-1 rounded border border-violet-500/30 shrink-0">
+                          {isParallelActive ? "Split @ 00:14s" : "9:16 Auto-Crop"}
+                        </span>
+                      </motion.div>
 
                       {/* Clipper Cursor */}
                       <motion.div
@@ -780,36 +835,34 @@
                           x: [30, 80, 80, 160, 190, 190, 30],
                           y: [0, 0, 1, 0, 0, 0, 0]
                         } : {
-                          x: 8,
-                          y: 0
+                          x: [50, 190, 95, 230, 50],
+                          y: [0, 0, 0, 0, 0]
                         }}
-                        transition={isParallelActive ? { repeat: Infinity, duration: 8.5, ease: "easeInOut", delay: 0.6, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : { duration: 0.3 }}
+                        transition={{ 
+                          repeat: Infinity, 
+                          duration: isParallelActive ? 8.5 : 13, 
+                          ease: "easeInOut", 
+                          delay: 0.4,
+                          ...(isParallelActive ? { times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : {})
+                        }}
                       >
-                        {isParallelActive && (
-                          <motion.div 
-                            animate={{ scale: [0, 0, 1.8, 0, 0, 0, 0], opacity: [0, 0, 0.9, 0, 0, 0, 0] }}
-                            transition={{ repeat: Infinity, duration: 8.5, delay: 0.6, times: [0, 0.24, 0.30, 0.35, 0.72, 0.88, 1.0] }}
-                            className="absolute -left-1 -top-1 w-6 h-6 rounded-full border-2 border-violet-400 bg-violet-400/30 pointer-events-none"
-                          />
-                        )}
+                        <motion.div 
+                          animate={{ scale: [1, 1.6, 1], opacity: [0.3, 0.8, 0.3] }}
+                          transition={{ repeat: Infinity, duration: 2, delay: 0.3 }}
+                          className="absolute -left-1 -top-1 w-5 h-5 rounded-full border border-violet-400 bg-violet-400/20 pointer-events-none"
+                        />
                         
-                        <svg className={`w-3.5 h-3.5 ${isParallelActive ? 'text-violet-400 drop-shadow-[0_2px_4px_rgba(168,85,247,0.8)]' : 'text-slate-600'}`} viewBox="0 0 24 24" fill="currentColor">
+                        <svg className="w-3.5 h-3.5 text-violet-400 drop-shadow-[0_2px_4px_rgba(168,85,247,0.8)]" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M4 2l16 16-6.5.5-3.5 5.5-2.5-1 3.5-5.5L4 17V2z"/>
                         </svg>
                         
                         <div className="flex flex-col">
-                          <span className={`px-1.5 py-0.2 text-[7px] font-black uppercase rounded font-mono shadow-md whitespace-nowrap ${isParallelActive ? 'bg-violet-500 text-white' : 'bg-slate-900/90 text-slate-500 border border-slate-800'}`}>
-                            Clipper {isParallelActive ? '' : '(Parked)'}
+                          <span className={`px-1.5 py-0.2 text-[7px] font-black uppercase rounded font-mono shadow-md whitespace-nowrap ${isParallelActive ? 'bg-violet-500 text-white' : 'bg-violet-950 text-violet-300 border border-violet-500/50'}`}>
+                            Clipper {isParallelActive ? '• Aligning' : '• Armed'}
                           </span>
-                          {isParallelActive && (
-                            <motion.span 
-                              animate={{ opacity: [0, 0, 1, 1, 1, 0, 0] }}
-                              transition={{ repeat: Infinity, duration: 8.5, delay: 0.6, times: [0, 0.22, 0.28, 0.60, 0.72, 0.80, 1.0] }}
-                              className="text-[6.5px] font-bold text-violet-200 bg-violet-950/90 px-1 rounded border border-violet-500/60 shadow whitespace-nowrap mt-0.5"
-                            >
-                              Aligning Climax
-                            </motion.span>
-                          )}
+                          <span className="text-[6.5px] font-bold text-violet-200 bg-violet-950/90 px-1 rounded border border-violet-500/60 shadow whitespace-nowrap mt-0.5">
+                            {isParallelActive ? 'Aligning Climax' : '1080x1920 60FPS'}
+                          </span>
                         </div>
                       </motion.div>
                     </div>
@@ -819,35 +872,30 @@
                   <div className="flex items-center gap-2 h-7 relative">
                     <span className="w-16 text-[8px] font-mono text-rose-400 font-bold shrink-0">T3: MEME VFX</span>
                     <div className="h-full flex-1 bg-slate-900/90 rounded border border-slate-800 relative flex items-center gap-2 px-1 overflow-visible">
-                      {isParallelActive ? (
-                        <>
-                          <div className="h-[85%] bg-rose-950/50 border border-rose-500/60 rounded px-1.5 flex items-center text-[7px] font-mono text-rose-200">
-                            Vine_Boom.wav (00:03s)
-                          </div>
-                          <motion.div 
-                            animate={{ 
-                              x: [0, 0, 0, 90, 125, 125, 0],
-                              rotate: [0, 0, -2, 2, 0, 0, 0],
-                              boxShadow: ["none", "none", "0 0 10px rgba(239,68,68,0.8)", "0 0 10px rgba(239,68,68,0.8)", "none", "none", "none"]
-                            }}
-                            transition={{ repeat: Infinity, duration: 7, ease: "easeInOut", delay: 1.2, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
-                            className="h-[85%] bg-red-950/60 border border-red-500/70 rounded px-2 flex items-center text-[7px] font-mono text-red-200 relative ml-4"
-                          >
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-400 mr-1 animate-pulse"></span>
-                            Wasted_Screen_Shake.fx (00:22s)
-                          </motion.div>
-                        </>
-                      ) : (
-                        <div className="h-[85%] border border-dashed border-slate-700/60 rounded flex items-center justify-between px-2 text-[8px] font-mono text-slate-500 w-full bg-slate-900/30">
-                          <div className="flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-                            <span>[Empty Track: SFX & Meme Overlay Bus Idle — Standing By]</span>
-                          </div>
-                          <span className="text-[7px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700/80">
-                            Parked (Standby)
-                          </span>
-                        </div>
-                      )}
+                      <div className="h-[85%] bg-rose-950/50 border border-rose-500/60 rounded px-1.5 flex items-center text-[7px] font-mono text-rose-200">
+                        Vine_Boom.wav (00:03s)
+                      </div>
+                      <motion.div 
+                        animate={isParallelActive ? { 
+                          x: [0, 0, 0, 90, 125, 125, 0],
+                          rotate: [0, 0, -2, 2, 0, 0, 0],
+                          boxShadow: ["none", "none", "0 0 10px rgba(239,68,68,0.8)", "0 0 10px rgba(239,68,68,0.8)", "none", "none", "none"]
+                        } : {
+                          x: [0, 30, 0],
+                          boxShadow: ["none", "0 0 6px rgba(239,68,68,0.5)", "none"]
+                        }}
+                        transition={{ 
+                          repeat: Infinity, 
+                          duration: isParallelActive ? 7 : 11, 
+                          ease: "easeInOut", 
+                          delay: 0.8,
+                          ...(isParallelActive ? { times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : {})
+                        }}
+                        className="h-[85%] bg-red-950/60 border border-red-500/70 rounded px-2 flex items-center text-[7px] font-mono text-red-200 relative ml-4 shadow-sm shadow-red-950"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-400 mr-1 animate-pulse"></span>
+                        Wasted_Screen_Shake.fx (00:22s)
+                      </motion.div>
 
                       {/* Meme VFX Cursor */}
                       <motion.div
@@ -856,36 +904,34 @@
                           x: [15, 60, 60, 150, 185, 185, 15],
                           y: [0, 0, 1, 0, 0, 0, 0]
                         } : {
-                          x: 8,
-                          y: 0
+                          x: [35, 150, 200, 105, 35],
+                          y: [0, 0, 0, 0, 0]
                         }}
-                        transition={isParallelActive ? { repeat: Infinity, duration: 7, ease: "easeInOut", delay: 1.2, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : { duration: 0.3 }}
+                        transition={{ 
+                          repeat: Infinity, 
+                          duration: isParallelActive ? 7 : 12, 
+                          ease: "easeInOut", 
+                          delay: 0.8,
+                          ...(isParallelActive ? { times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : {})
+                        }}
                       >
-                        {isParallelActive && (
-                          <motion.div 
-                            animate={{ scale: [0, 0, 1.8, 0, 0, 0, 0], opacity: [0, 0, 0.9, 0, 0, 0, 0] }}
-                            transition={{ repeat: Infinity, duration: 7, delay: 1.2, times: [0, 0.24, 0.30, 0.35, 0.72, 0.88, 1.0] }}
-                            className="absolute -left-1 -top-1 w-6 h-6 rounded-full border-2 border-rose-400 bg-rose-400/30 pointer-events-none"
-                          />
-                        )}
+                        <motion.div 
+                          animate={{ scale: [1, 1.6, 1], opacity: [0.3, 0.8, 0.3] }}
+                          transition={{ repeat: Infinity, duration: 2, delay: 0.6 }}
+                          className="absolute -left-1 -top-1 w-5 h-5 rounded-full border border-rose-400 bg-rose-400/20 pointer-events-none"
+                        />
                         
-                        <svg className={`w-3.5 h-3.5 ${isParallelActive ? 'text-rose-400 drop-shadow-[0_2px_4px_rgba(244,63,94,0.8)]' : 'text-slate-600'}`} viewBox="0 0 24 24" fill="currentColor">
+                        <svg className="w-3.5 h-3.5 text-rose-400 drop-shadow-[0_2px_4px_rgba(244,63,94,0.8)]" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M4 2l16 16-6.5.5-3.5 5.5-2.5-1 3.5-5.5L4 17V2z"/>
                         </svg>
                         
                         <div className="flex flex-col">
-                          <span className={`px-1.5 py-0.2 text-[7px] font-black uppercase rounded font-mono shadow-md whitespace-nowrap ${isParallelActive ? 'bg-rose-500 text-white' : 'bg-slate-900/90 text-slate-500 border border-slate-800'}`}>
-                            Meme VFX {isParallelActive ? '' : '(Parked)'}
+                          <span className={`px-1.5 py-0.2 text-[7px] font-black uppercase rounded font-mono shadow-md whitespace-nowrap ${isParallelActive ? 'bg-rose-500 text-white' : 'bg-rose-950 text-rose-300 border border-rose-500/50'}`}>
+                            Meme VFX {isParallelActive ? '• Placing' : '• Armed'}
                           </span>
-                          {isParallelActive && (
-                            <motion.span 
-                              animate={{ opacity: [0, 0, 1, 1, 1, 0, 0] }}
-                              transition={{ repeat: Infinity, duration: 7, delay: 1.2, times: [0, 0.22, 0.28, 0.60, 0.72, 0.80, 1.0] }}
-                              className="text-[6.5px] font-bold text-rose-200 bg-rose-950/90 px-1 rounded border border-rose-500/60 shadow whitespace-nowrap mt-0.5"
-                            >
-                              Placing Shake.fx
-                            </motion.span>
-                          )}
+                          <span className="text-[6.5px] font-bold text-rose-200 bg-rose-950/90 px-1 rounded border border-rose-500/60 shadow whitespace-nowrap mt-0.5">
+                            {isParallelActive ? 'Placing Shake.fx' : 'SFX Ready (Bass Drop)'}
+                          </span>
                         </div>
                       </motion.div>
                     </div>
@@ -895,40 +941,37 @@
                   <div className="flex items-center gap-2 h-7 relative">
                     <span className="w-16 text-[8px] font-mono text-emerald-400 font-bold shrink-0">T4: CLIVOX</span>
                     <div className="h-full flex-1 bg-slate-900/90 rounded border border-slate-800 relative flex items-center px-1 overflow-visible">
-                      {isParallelActive ? (
-                        <div className="h-[85%] bg-emerald-950/40 border border-emerald-500/50 rounded flex items-center justify-between px-2 text-[8px] font-mono text-emerald-300 w-full relative overflow-hidden">
-                          <div className="flex items-center gap-1.5">
-                            <span className="truncate">phonk_drift_aggressive.mp3</span>
-                            <span className="text-[7px] text-emerald-400/70 border-b border-dashed border-emerald-400/60">~ -40dB envelope</span>
-                          </div>
-                          
-                          <motion.div 
-                            animate={{ 
-                              x: [0, 0, 0, -90, -75, -75, 0],
-                              scale: [1, 1, 1.08, 1.08, 1, 1, 1]
-                            }}
-                            transition={{ repeat: Infinity, duration: 8, ease: "easeInOut", delay: 1.8, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
-                            className="flex items-center gap-1 shrink-0"
-                          >
-                            <span className="text-[7px] bg-emerald-500/30 text-emerald-200 px-1.5 py-0.5 rounded border border-emerald-400 font-bold shadow">
-                              -40% Ducking Active
-                            </span>
-                            <span className="text-[7px] bg-emerald-500/20 text-emerald-300 px-1 rounded border border-emerald-500/40">
-                              4h Locked
-                            </span>
-                          </motion.div>
+                      <div className="h-[85%] bg-emerald-950/40 border border-emerald-500/50 rounded flex items-center justify-between px-2 text-[8px] font-mono text-emerald-300 w-full relative overflow-hidden shadow-sm shadow-emerald-950">
+                        <div className="flex items-center gap-1.5">
+                          <span className="truncate">phonk_drift_aggressive.mp3</span>
+                          <span className="text-[7px] text-emerald-400/70 border-b border-dashed border-emerald-400/60">~ -40dB envelope</span>
                         </div>
-                      ) : (
-                        <div className="h-[85%] border border-dashed border-slate-700/60 rounded flex items-center justify-between px-2 text-[8px] font-mono text-slate-500 w-full bg-slate-900/30">
-                          <div className="flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-                            <span>[Empty Track: Phonk Ducking & YouTube Dispatch Idle — Standing By]</span>
-                          </div>
-                          <span className="text-[7px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700/80">
-                            Parked (Standby)
+                        
+                        <motion.div 
+                          animate={isParallelActive ? { 
+                            x: [0, 0, 0, -90, -75, -75, 0],
+                            scale: [1, 1, 1.08, 1.08, 1, 1, 1]
+                          } : {
+                            x: [0, -15, 0],
+                            scale: [1, 1.03, 1]
+                          }}
+                          transition={{ 
+                            repeat: Infinity, 
+                            duration: isParallelActive ? 8 : 10, 
+                            ease: "easeInOut", 
+                            delay: 1.2,
+                            ...(isParallelActive ? { times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : {})
+                          }}
+                          className="flex items-center gap-1 shrink-0"
+                        >
+                          <span className="text-[7px] bg-emerald-500/30 text-emerald-200 px-1.5 py-0.5 rounded border border-emerald-400 font-bold shadow">
+                            -40% Ducking
                           </span>
-                        </div>
-                      )}
+                          <span className="text-[7px] bg-emerald-500/20 text-emerald-300 px-1 rounded border border-emerald-500/40">
+                            4h Locked
+                          </span>
+                        </motion.div>
+                      </div>
 
                       {/* Clivox Cursor */}
                       <motion.div
@@ -937,36 +980,34 @@
                           x: [280, 260, 260, 170, 185, 185, 280],
                           y: [0, 0, 1, 0, 0, 0, 0]
                         } : {
-                          x: 8,
-                          y: 0
+                          x: [230, 160, 260, 185, 230],
+                          y: [0, 0, 0, 0, 0]
                         }}
-                        transition={isParallelActive ? { repeat: Infinity, duration: 8, ease: "easeInOut", delay: 1.8, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : { duration: 0.3 }}
+                        transition={{ 
+                          repeat: Infinity, 
+                          duration: isParallelActive ? 8 : 13, 
+                          ease: "easeInOut", 
+                          delay: 1.2,
+                          ...(isParallelActive ? { times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : {})
+                        }}
                       >
-                        {isParallelActive && (
-                          <motion.div 
-                            animate={{ scale: [0, 0, 1.8, 0, 0, 0, 0], opacity: [0, 0, 0.9, 0, 0, 0, 0] }}
-                            transition={{ repeat: Infinity, duration: 8, delay: 1.8, times: [0, 0.24, 0.30, 0.35, 0.72, 0.88, 1.0] }}
-                            className="absolute -left-1 -top-1 w-6 h-6 rounded-full border-2 border-emerald-400 bg-emerald-400/30 pointer-events-none"
-                          />
-                        )}
+                        <motion.div 
+                          animate={{ scale: [1, 1.6, 1], opacity: [0.3, 0.8, 0.3] }}
+                          transition={{ repeat: Infinity, duration: 2, delay: 0.9 }}
+                          className="absolute -left-1 -top-1 w-5 h-5 rounded-full border border-emerald-400 bg-emerald-400/20 pointer-events-none"
+                        />
                         
-                        <svg className={`w-3.5 h-3.5 ${isParallelActive ? 'text-emerald-400 drop-shadow-[0_2px_4px_rgba(16,185,129,0.8)]' : 'text-slate-600'}`} viewBox="0 0 24 24" fill="currentColor">
+                        <svg className="w-3.5 h-3.5 text-emerald-400 drop-shadow-[0_2px_4px_rgba(16,185,129,0.8)]" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M4 2l16 16-6.5.5-3.5 5.5-2.5-1 3.5-5.5L4 17V2z"/>
                         </svg>
                         
                         <div className="flex flex-col">
-                          <span className={`px-1.5 py-0.2 text-[7px] font-black uppercase rounded font-mono shadow-md whitespace-nowrap ${isParallelActive ? 'bg-emerald-500 text-white' : 'bg-slate-900/90 text-slate-500 border border-slate-800'}`}>
-                            Clivox {isParallelActive ? '' : '(Parked)'}
+                          <span className={`px-1.5 py-0.2 text-[7px] font-black uppercase rounded font-mono shadow-md whitespace-nowrap ${isParallelActive ? 'bg-emerald-500 text-white' : 'bg-emerald-950 text-emerald-300 border border-emerald-500/50'}`}>
+                            Clivox {isParallelActive ? '• Ducking' : (liveState?.channel_info?.connected ? '• Synced' : liveState?.channel_info?.channel_title === 'Verifying Channel...' ? '• Checking' : liveState?.channel_info?.channel_title === 'Unverified Channel' ? '• Unverified' : '• Standby')}
                           </span>
-                          {isParallelActive && (
-                            <motion.span 
-                              animate={{ opacity: [0, 0, 1, 1, 1, 0, 0] }}
-                              transition={{ repeat: Infinity, duration: 8, delay: 1.8, times: [0, 0.22, 0.28, 0.60, 0.72, 0.80, 1.0] }}
-                              className="text-[6.5px] font-bold text-emerald-200 bg-emerald-950/90 px-1 rounded border border-emerald-500/60 shadow whitespace-nowrap mt-0.5"
-                            >
-                              Automating Duck
-                            </motion.span>
-                          )}
+                          <span className="text-[6.5px] font-bold text-emerald-200 bg-emerald-950/90 px-1 rounded border border-emerald-500/60 shadow whitespace-nowrap mt-0.5">
+                            {isParallelActive ? 'Automating Duck' : (liveState?.channel_info?.connected ? 'YouTube OAuth Linked' : liveState?.channel_info?.channel_title === 'Verifying Channel...' ? 'Verifying Channel...' : liveState?.channel_info?.channel_title === 'Unverified Channel' ? 'Unverified Channel' : 'No Channel Linked')}
+                          </span>
                         </div>
                       </motion.div>
                     </div>
@@ -976,31 +1017,28 @@
                   <div className="flex items-center gap-2 h-7 relative">
                     <span className="w-16 text-[8px] font-mono text-amber-400 font-bold shrink-0">T5: BRAIN</span>
                     <div className="h-full flex-1 bg-slate-900/90 rounded border border-slate-800 relative flex items-center px-1 overflow-visible">
-                      {isParallelActive ? (
-                        <motion.div 
-                          animate={{ 
-                            x: [40, 40, 40, 8, 0, 0, 40],
-                            boxShadow: ["none", "none", "0 0 10px rgba(245,158,11,0.6)", "0 0 10px rgba(245,158,11,0.6)", "none", "none", "none"]
-                          }}
-                          transition={{ repeat: Infinity, duration: 7.5, ease: "easeInOut", delay: 2.4, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] }}
-                          className="h-[85%] bg-amber-950/40 border border-amber-500/60 rounded flex items-center justify-between px-2 text-[8px] font-mono text-amber-300 w-[88%] relative"
-                        >
-                          <span className="truncate">Hook: "HE ACTUALLY BROKE GTA 6!" #Shorts<span className="inline-block w-1 h-2.5 bg-amber-400 ml-1 animate-pulse"></span></span>
-                          <span className="text-[7px] bg-amber-500/20 text-amber-200 px-1 rounded border border-amber-500/40 shrink-0 font-bold">
-                            Virality 93.0
-                          </span>
-                        </motion.div>
-                      ) : (
-                        <div className="h-[85%] border border-dashed border-slate-700/60 rounded flex items-center justify-between px-2 text-[8px] font-mono text-slate-500 w-full bg-slate-900/30">
-                          <div className="flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-                            <span>[Empty Track: Antigravity AI Climax Hook Idle — Standing By]</span>
-                          </div>
-                          <span className="text-[7px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700/80">
-                            Parked (Standby)
-                          </span>
-                        </div>
-                      )}
+                      <motion.div 
+                        animate={isParallelActive ? { 
+                          x: [40, 40, 40, 8, 0, 0, 40],
+                          boxShadow: ["none", "none", "0 0 10px rgba(245,158,11,0.6)", "0 0 10px rgba(245,158,11,0.6)", "none", "none", "none"]
+                        } : {
+                          x: [20, 0, 20],
+                          boxShadow: ["none", "0 0 8px rgba(245,158,11,0.4)", "none"]
+                        }}
+                        transition={{ 
+                          repeat: Infinity, 
+                          duration: isParallelActive ? 7.5 : 12, 
+                          ease: "easeInOut", 
+                          delay: 1.6,
+                          ...(isParallelActive ? { times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : {})
+                        }}
+                        className="h-[85%] bg-amber-950/40 border border-amber-500/60 rounded flex items-center justify-between px-2 text-[8px] font-mono text-amber-300 w-[88%] relative shadow-sm shadow-amber-950"
+                      >
+                        <span className="truncate">Hook: "HE ACTUALLY BROKE GTA 6!" #Shorts<span className="inline-block w-1 h-2.5 bg-amber-400 ml-1 animate-pulse"></span></span>
+                        <span className="text-[7px] bg-amber-500/20 text-amber-200 px-1 rounded border border-amber-500/40 shrink-0 font-bold">
+                          Virality 96.0
+                        </span>
+                      </motion.div>
 
                       {/* Antigravity AI Brain Cursor */}
                       <motion.div
@@ -1009,36 +1047,34 @@
                           x: [150, 75, 75, 10, 0, 0, 150],
                           y: [0, 0, 1, 0, 0, 0, 0]
                         } : {
-                          x: 8,
-                          y: 0
+                          x: [80, 220, 130, 45, 80],
+                          y: [0, 0, 0, 0, 0]
                         }}
-                        transition={isParallelActive ? { repeat: Infinity, duration: 7.5, ease: "easeInOut", delay: 2.4, times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : { duration: 0.3 }}
+                        transition={{ 
+                          repeat: Infinity, 
+                          duration: isParallelActive ? 7.5 : 14, 
+                          ease: "easeInOut", 
+                          delay: 1.6,
+                          ...(isParallelActive ? { times: [0, 0.22, 0.28, 0.60, 0.72, 0.88, 1.0] } : {})
+                        }}
                       >
-                        {isParallelActive && (
-                          <motion.div 
-                            animate={{ scale: [0, 0, 1.8, 0, 0, 0, 0], opacity: [0, 0, 0.9, 0, 0, 0, 0] }}
-                            transition={{ repeat: Infinity, duration: 7.5, delay: 2.4, times: [0, 0.24, 0.30, 0.35, 0.72, 0.88, 1.0] }}
-                            className="absolute -left-1 -top-1 w-6 h-6 rounded-full border-2 border-amber-400 bg-amber-400/30 pointer-events-none"
-                          />
-                        )}
+                        <motion.div 
+                          animate={{ scale: [1, 1.6, 1], opacity: [0.3, 0.8, 0.3] }}
+                          transition={{ repeat: Infinity, duration: 2, delay: 1.2 }}
+                          className="absolute -left-1 -top-1 w-5 h-5 rounded-full border border-amber-400 bg-amber-400/20 pointer-events-none"
+                        />
                         
-                        <svg className={`w-3.5 h-3.5 ${isParallelActive ? 'text-amber-400 drop-shadow-[0_2px_4px_rgba(245,158,11,0.8)]' : 'text-slate-600'}`} viewBox="0 0 24 24" fill="currentColor">
+                        <svg className="w-3.5 h-3.5 text-amber-400 drop-shadow-[0_2px_4px_rgba(245,158,11,0.8)]" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M4 2l16 16-6.5.5-3.5 5.5-2.5-1 3.5-5.5L4 17V2z"/>
                         </svg>
                         
                         <div className="flex flex-col">
-                          <span className={`px-1.5 py-0.2 text-[7px] font-black uppercase rounded font-mono font-bold shadow-md whitespace-nowrap ${isParallelActive ? 'bg-amber-400 text-black' : 'bg-slate-900/90 text-slate-500 border border-slate-800'}`}>
-                            Antigravity {isParallelActive ? '' : '(Parked)'}
+                          <span className={`px-1.5 py-0.2 text-[7px] font-black uppercase rounded font-mono font-bold shadow-md whitespace-nowrap ${isParallelActive ? 'bg-amber-400 text-black' : 'bg-amber-950 text-amber-300 border border-amber-500/50'}`}>
+                            Antigravity {isParallelActive ? '• Directing' : '• Active'}
                           </span>
-                          {isParallelActive && (
-                            <motion.span 
-                              animate={{ opacity: [0, 0, 1, 1, 1, 0, 0] }}
-                              transition={{ repeat: Infinity, duration: 7.5, delay: 2.4, times: [0, 0.22, 0.28, 0.60, 0.72, 0.80, 1.0] }}
-                              className="text-[6.5px] font-bold text-amber-200 bg-amber-950/90 px-1 rounded border border-amber-500/60 shadow whitespace-nowrap mt-0.5"
-                            >
-                              Snap to Frame 0
-                            </motion.span>
-                          )}
+                          <span className="text-[6.5px] font-bold text-amber-200 bg-amber-950/90 px-1 rounded border border-amber-500/60 shadow whitespace-nowrap mt-0.5">
+                            {isParallelActive ? 'Snap to Frame 0' : 'Autonomous AI Core'}
+                          </span>
                         </div>
                       </motion.div>
                     </div>
@@ -1049,14 +1085,18 @@
                     animate={isParallelActive ? {
                       left: ["0%", "20%", "45%", "75%", "95%", "100%", "0%"]
                     } : {
-                      left: "0%"
+                      left: ["0%", "100%", "0%"]
                     }}
-                    transition={isParallelActive ? { repeat: Infinity, duration: 8.5, ease: "linear" } : { duration: 0.3 }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: isParallelActive ? 8.5 : 18,
+                      ease: "linear"
+                    }}
                     className="absolute top-0 bottom-0 w-0.5 bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.9)] z-20 pointer-events-none"
                   >
                     <div className="w-2 h-2 -ml-0.5 bg-yellow-400 rotate-45"></div>
                     <div className="absolute top-1 -left-3 text-[6.5px] font-mono bg-yellow-950/90 text-yellow-300 border border-yellow-500/50 px-1 rounded whitespace-nowrap shadow">
-                      {isParallelActive ? `${Math.round(parallelProgress)}%` : "00:00"}
+                      {isParallelActive ? `${Math.round(parallelProgress)}%` : "00:14s"}
                     </div>
                   </motion.div>
                 </div>
