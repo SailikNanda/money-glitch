@@ -669,8 +669,10 @@
                       {liveState?.stage === 'STAGE_CLIPPING' && "✂️ PHASE 2: CLIPPING & EDITING — Slicing 9:16 Vertical 60FPS, Kinetic Subs & Phonk Ducking..."}
                       {liveState?.stage === 'STAGE_PACKAGING' && "🎬 PHASE 3: PACKAGING & SCORING — Scoring Virality 96.0 & Packaging 9:16 Master..."}
                       {liveState?.stage === 'STAGE_UPLOADING' && `🚀 UPLOADING TO YOUTUBE — Dispatching Short${channelHandle ? ` to ${channelHandle}` : channelTitle ? ` to ${channelTitle}` : ''} via Google OAuth...`}
-                      {liveState?.stage === 'STAGE_FAILED' && "⚠️ PIPELINE OPERATION FAILED — Check Channel Status & Telemetry Logs"}
-                      {(!liveState?.stage || liveState?.stage === 'IDLE' || liveState?.stage === 'STAGE_COMPLETED' || liveState?.stage === 'COMPLETED') && (
+                      {(liveState?.stage === 'STAGE_FAILED' || liveState?.upload_result?.status === 'failed') && (
+                        `⚠️ PIPELINE OPERATION FAILED — ${liveState?.upload_result?.error || 'Check Channel Status & Telemetry Logs'}`
+                      )}
+                      {!liveState?.upload_result?.status && (!liveState?.stage || liveState?.stage === 'IDLE' || liveState?.stage === 'STAGE_COMPLETED' || liveState?.stage === 'COMPLETED') && (
                         liveState?.emergency_stop 
                           ? "🛑 EMERGENCY STOP ACTIVE — Subsequent Iterations Halted (No New Runs Will Launch)"
                           : "✨ AUTONOMOUS SWARM ACTIVE — 5 Tracks Continuously Animated & Monitoring"
@@ -678,13 +680,21 @@
                     </span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {liveState?.emergency_stop && (
+                    {liveState?.emergency_stop && isParallelActive && (
                       <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-950/80 text-rose-300 border border-rose-800">
-                        STOP ARMED (BLOCKS NEW CYCLES)
+                        STOP ARMED (DRAINING CYCLE)
                       </span>
                     )}
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-800/80 text-cyan-300 border border-slate-700">
-                      {isParallelActive ? `${parallelProgress}% Complete` : "AUTONOMOUS LOOP ACTIVE"}
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
+                      liveState?.emergency_stop && !isParallelActive
+                        ? 'bg-rose-950/80 text-rose-300 border-rose-800'
+                        : 'bg-slate-800/80 text-cyan-300 border-slate-700'
+                    }`}>
+                      {isParallelActive 
+                        ? `${parallelProgress}% Complete` 
+                        : liveState?.emergency_stop 
+                          ? "PRODUCTION STOPPED" 
+                          : "AUTONOMOUS LOOP ACTIVE"}
                     </span>
                   </div>
                 </div>

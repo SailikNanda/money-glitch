@@ -321,29 +321,60 @@ class YouTubeUploader:
         with self._auth_lock:
             self._login_attempt_id += 1
             current_attempt = self._login_attempt_id
+            self._oauth_flow_status = {
+                "attempt_id": current_attempt,
+                "status": "pending",
+                "message": "Awaiting interactive OAuth authentication..."
+            }
 
-        flow = InstalledAppFlow.from_client_secrets_file(str(YOUTUBE_CLIENT_SECRETS_PATH), SCOPES)
         try:
-            creds = flow.run_local_server(port=8080, open_browser=True)
+            flow = InstalledAppFlow.from_client_secrets_file(str(YOUTUBE_CLIENT_SECRETS_PATH), SCOPES)
+            try:
+                creds = flow.run_local_server(port=8080, open_browser=True)
+            except Exception as e:
+                logger.warning(f"Port 8080 unavailable ({e}), attempting dynamic port...")
+                creds = flow.run_local_server(port=0, open_browser=True)
+            new_client = build("youtube", "v3", credentials=creds)
+            with self._auth_lock:
+                if self._login_attempt_id != current_attempt:
+                    logger.warning("Rejecting superseded interactive login commit.")
+                    return False
+                if self._active_uploads > 0 or self._publication_reservation_id is not None:
+                    logger.warning("Rejecting interactive login commit while upload or publication reservation is in progress.")
+                    self._oauth_flow_status = {
+                        "attempt_id": current_attempt,
+                        "status": "failed",
+                        "error_code": "upload_in_progress",
+                        "message": "Authorization could not complete because an upload or publication reservation was in progress. Please start a fresh sign-in flow after publication finishes."
+                    }
+                    return False
+                _atomic_write_token(creds)
+                self._auth_version += 1
+                self._explicitly_disconnected = False
+                self.credentials = creds
+                self.youtube = new_client
+                if hasattr(self, "_thread_local"):
+                    self._thread_local.client = new_client
+                    self._thread_local.version = self._auth_version
+                    self._thread_local.creds = creds
+                self._oauth_flow_status = {
+                    "attempt_id": current_attempt,
+                    "status": "connected",
+                    "message": "YouTube channel connected successfully."
+                }
+            logger.info("Successfully connected YouTube channel via OAuth 2.0.")
+            return True
         except Exception as e:
-            logger.warning(f"Port 8080 unavailable ({e}), attempting dynamic port...")
-            creds = flow.run_local_server(port=0, open_browser=True)
-        new_client = build("youtube", "v3", credentials=creds)
-        with self._auth_lock:
-            if self._active_uploads > 0 or self._publication_reservation_id is not None or self._login_attempt_id != current_attempt:
-                logger.warning("Rejecting interactive login commit while upload or publication reservation is in progress or attempt superseded.")
-                return False
-            _atomic_write_token(creds)
-            self._auth_version += 1
-            self._explicitly_disconnected = False
-            self.credentials = creds
-            self.youtube = new_client
-            if hasattr(self, "_thread_local"):
-                self._thread_local.client = new_client
-                self._thread_local.version = self._auth_version
-                self._thread_local.creds = creds
-        logger.info("Successfully connected YouTube channel via OAuth 2.0.")
-        return True
+            logger.error(f"Error during interactive OAuth flow: {e}")
+            with self._auth_lock:
+                if self._login_attempt_id == current_attempt:
+                    self._oauth_flow_status = {
+                        "attempt_id": current_attempt,
+                        "status": "failed",
+                        "error_code": "interactive_error",
+                        "message": f"Interactive authentication failed: {str(e)}"
+                    }
+            return False
 
     def logout(self) -> Dict[str, Any]:
         """Disconnects current YouTube channel and clears cached OAuth credentials."""

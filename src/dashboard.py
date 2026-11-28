@@ -100,6 +100,7 @@ LIVE_STATE = {
     "current_streamer": "IShowSpeed",
     "video_file": "short_test_ai_clip_1_0s.mp4",
     "virality_score": 94.8,
+    "upload_result": None,
     "agents": {
         "scout": {
             "name": "Agent Scout",
@@ -432,7 +433,7 @@ def _sync_dashboard_activity():
         upload_active = _is_upload_active_locked()
         LIVE_STATE["is_active"] = (_ACTIVE_VISUAL_CYCLES > 0) or upload_active
 
-async def _simulate_visual_production_cycle(sched_task=None):
+async def _simulate_visual_production_cycle(auth_ver: Optional[int] = None):
     """Executes true PARALLEL multi-agent production where all 5 agents work concurrently through visual phases."""
     async with _VISUAL_CYCLE_MUTEX:
         global _ACTIVE_VISUAL_CYCLES, _STAGE_OWNER, _PIPELINE_RUNNING, _PIPELINE_ACTIVE_STAGE, _PIPELINE_ACTIVE_PROGRESS, _PIPELINE_SAVED_OUTCOME
@@ -441,11 +442,10 @@ async def _simulate_visual_production_cycle(sched_task=None):
         em_stop = get_setting("emergency_stop", 0)
         is_em_stopped = bool(int(em_stop)) if str(em_stop).isdigit() else bool(em_stop)
         if is_em_stopped:
-            if sched_task is not None:
-                try:
-                    await sched_task
-                except Exception as ex:
-                    logger.error(f"Scheduler execution error: {ex}")
+            try:
+                await asyncio.to_thread(scheduler.run_full_pipeline_iteration, auth_ver)
+            except Exception as ex:
+                logger.error(f"Scheduler execution error: {ex}")
             log_event("SYSTEM", "Pipeline halted immediately: Emergency Stop is active.")
             with _PIPELINE_ACTIVITY_LOCK:
                 _PIPELINE_RUNNING = False
@@ -463,6 +463,10 @@ async def _simulate_visual_production_cycle(sched_task=None):
             LIVE_STATE["is_active"] = True
             if not _is_upload_active_locked():
                 _STAGE_OWNER = "pipeline"
+                LIVE_STATE["upload_result"] = None
+
+        # Serialize scheduler execution by starting the worker task under the mutex off the event loop
+        sched_task = asyncio.create_task(asyncio.to_thread(scheduler.run_full_pipeline_iteration, auth_ver))
         try:
             # PHASE 1: RESEARCHING TRENDS
             _PIPELINE_ACTIVE_STAGE = "STAGE_RESEARCHING"
@@ -600,8 +604,7 @@ async def handle_action(req: ActionRequest, background_tasks: BackgroundTasks):
     action = req.action
 
     if action == "run_cycle":
-        sched_task = asyncio.create_task(asyncio.to_thread(scheduler.run_full_pipeline_iteration))
-        background_tasks.add_task(_simulate_visual_production_cycle, sched_task)
+        background_tasks.add_task(_simulate_visual_production_cycle)
         return {"success": True, "message": "Multi-Agent production and autonomous cycle running"}
 
     elif action == "trigger_actual_upload":
@@ -623,6 +626,8 @@ async def handle_action(req: ActionRequest, background_tasks: BackgroundTasks):
             if not pub_res_id:
                 return {"success": False, "message": "An upload operation is already in progress. Please wait for it to complete."}
 
+        LIVE_STATE["upload_result"] = None
+
         res_transferred_to_worker = False
         try:
             # Select or revalidate ready clips under the held reservation
@@ -630,8 +635,7 @@ async def handle_action(req: ActionRequest, background_tasks: BackgroundTasks):
             if not ready_clips:
                 uploader.release_publication_reservation(op_id)
                 res_transferred_to_worker = True
-                sched_task = asyncio.create_task(asyncio.to_thread(scheduler.run_full_pipeline_iteration, current_auth_ver))
-                background_tasks.add_task(_simulate_visual_production_cycle, sched_task)
+                background_tasks.add_task(_simulate_visual_production_cycle, current_auth_ver)
                 return {"success": True, "message": "No pre-rendered clip found. Initiating full clipping and upload cycle..."}
 
             top_clip = ready_clips[0]
@@ -676,17 +680,20 @@ async def handle_action(req: ActionRequest, background_tasks: BackgroundTasks):
                             youtube_url=res.get("youtube_url", ""),
                             title=clip_data.get("title", "")
                         )
+                        LIVE_STATE["upload_result"] = {"status": "success", "youtube_url": res.get("youtube_url")}
                         with _UPLOAD_LOCK:
                             if _ACTIVE_UPLOAD_ID == operation_id:
                                 LIVE_STATE["progress"] = 100
                                 LIVE_STATE["stage"] = "STAGE_COMPLETED"
                         log_event("CLIVOX", f"SUCCESS! Published Short to YouTube: {res.get('youtube_url')}")
                     else:
+                        LIVE_STATE["upload_result"] = {"status": "failed", "error": res.get("error")}
                         with _UPLOAD_LOCK:
                             if _ACTIVE_UPLOAD_ID == operation_id:
                                 LIVE_STATE["stage"] = "STAGE_FAILED"
                         log_event("CLIVOX", f"Direct upload error: {res.get('error')}")
                 except Exception as e:
+                    LIVE_STATE["upload_result"] = {"status": "failed", "error": str(e)}
                     with _UPLOAD_LOCK:
                         if _ACTIVE_UPLOAD_ID == operation_id:
                             LIVE_STATE["stage"] = "STAGE_FAILED"
@@ -704,8 +711,12 @@ async def handle_action(req: ActionRequest, background_tasks: BackgroundTasks):
                                     LIVE_STATE["stage"] = _PIPELINE_ACTIVE_STAGE
                                     LIVE_STATE["progress"] = _PIPELINE_ACTIVE_PROGRESS
                                 elif _PIPELINE_SAVED_OUTCOME is not None:
-                                    LIVE_STATE["stage"] = _PIPELINE_SAVED_OUTCOME["stage"]
-                                    LIVE_STATE["progress"] = _PIPELINE_SAVED_OUTCOME["progress"]
+                                    upload_res = LIVE_STATE.get("upload_result") or {}
+                                    if upload_res.get("status") == "failed":
+                                        LIVE_STATE["stage"] = "STAGE_FAILED"
+                                    else:
+                                        LIVE_STATE["stage"] = _PIPELINE_SAVED_OUTCOME["stage"]
+                                        LIVE_STATE["progress"] = _PIPELINE_SAVED_OUTCOME["progress"]
                         upload_active = _is_upload_active_locked()
                         LIVE_STATE["is_active"] = (_ACTIVE_VISUAL_CYCLES > 0) or upload_active
 
