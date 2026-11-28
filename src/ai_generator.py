@@ -58,6 +58,43 @@ class AntigravityDirector:
             with open(self.state_file, "w", encoding="utf-8") as f:
                 json.dump(default_state, f, indent=2)
 
+    def _format_clean_topic(self, raw_topic: str, video_title: str = "") -> str:
+        """Transforms raw category enums or keys into clean, natural human topic names while preserving explicit titles."""
+        if not raw_topic:
+            return "VIRAL"
+
+        # If raw_topic is an explicit subject name (not an internal category key with underscores)
+        if "_" not in raw_topic:
+            return raw_topic.strip()
+
+        rt = raw_topic.lower()
+        if "cinema" in rt or "trailer" in rt or "movie" in rt:
+            if video_title:
+                clean_t = re.split(r'[\s|—–-]+(?:official|teaser|trailer|clip)', video_title, flags=re.I)[0].strip()
+                if 2 < len(clean_t) < 32:
+                    return clean_t.upper()
+            return "CINEMA"
+
+        if rt.startswith("gaming_open_world"):
+            return "GTA 6"
+        if rt.startswith("gaming_physics"):
+            return "BEAMNG"
+        if rt.startswith("gaming_horror"):
+            return "HORROR"
+        if rt.startswith("sports_nba"):
+            return "NBA"
+        if rt.startswith("sports_nfl"):
+            return "NFL"
+        if rt.startswith("sports_ufc") or rt.startswith("sports_boxing"):
+            return "COMBAT SPORTS"
+        if rt.startswith("viral_street_trivia"):
+            return "STREET TRIVIA"
+
+        words = [w for w in rt.replace("_", " ").split() if w not in ["gaming", "viral", "culture", "video", "trailers", "clips", "category"]]
+        if words:
+            return " ".join(words).title()
+        return "VIRAL"
+
     def set_antigravity_direction(
         self,
         video_id: str,
@@ -146,8 +183,14 @@ class AntigravityDirector:
         else:
             start_time = 0.0
 
-        topic_clean = game_topic.upper()
+        # Clean topic formatting (turn raw category enums like cinema_blockbuster_trailers into clean words)
+        raw_topic_lower = (game_topic or "").lower()
+        clean_topic = self._format_clean_topic(game_topic, transcript_or_description)
+        topic_clean = clean_topic.upper()
         streamer_clean = streamer_name.upper()
+
+        is_sports = any(w in raw_topic_lower for w in ["sport", "nba", "nfl", "ufc", "boxing", "goal", "soccer", "football", "basketball"])
+        is_cinema = any(w in raw_topic_lower for w in ["cinema", "trailer", "movie", "film", "anime"]) or "trailer" in transcript_or_description.lower()
 
         # Dynamic high-CTR curiosity gap hook titles by Antigravity AI across all creators & genres
         if "SPEED" in streamer_clean or "ISHOWSPEED" in streamer_clean:
@@ -170,11 +213,11 @@ class AntigravityDirector:
             hook_title = f"WHAT'S UP BROTHER?! SKETCH DID THIS! 💀"
             keywords = ["SKETCH", "BROTHER", "WHATSUP", "HILARIOUS", "EPIC"]
             sfx = "vine_boom"
-        elif any(w in topic_clean for w in ["SPORT", "NBA", "UFC", "GOAL", "BASKETBALL", "FOOTBALL"]):
-            hook_title = f"THE GREATEST PLAY IN SPORTS HISTORY! 🏆🔥"
+        elif is_sports:
+            hook_title = f"THE GREATEST PLAY IN {topic_clean} HISTORY! 🏆🔥"
             keywords = ["SPORTS", "CLUTCH", "LEGENDARY", "INSANE", "UNREAL"]
             sfx = "vine_boom"
-        elif any(w in topic_clean for w in ["CINEMA", "TRAILER", "MOVIE", "ANIME", "FILM"]):
+        elif is_cinema:
             hook_title = f"THIS {topic_clean} SCENE GAVE EVERYONE CHILLS! 🎬⚡"
             keywords = [topic_clean, "EPIC", "CINEMATIC", "CHILLS", "INSANE"]
             sfx = "vine_boom"
@@ -215,20 +258,21 @@ class AntigravityDirector:
 
         title_upper = video_title.upper()
         streamer = channel_name.strip() if channel_name else ("IShowSpeed" if "SPEED" in title_upper else "Gamer")
+        clean_topic = self._format_clean_topic(topic, video_title)
 
-        # Action / Context extraction
+        # Action / Context extraction with strict word boundaries
         action_type = "glitch"
-        if any(w in title_upper for w in ["NBA", "GOAL", "UFC", "KNOCKOUT", "KO", "SOCCER", "FOOTBALL", "BASKETBALL", "SPORTS"]):
+        if any(w in title_upper for w in ["NBA", "GOAL", "UFC", "KNOCKOUT", "KO", "SOCCER", "FOOTBALL", "BASKETBALL", "SPORTS"]) or "sport" in topic.lower():
             action_type = "sports"
-        elif any(w in title_upper for w in ["TRAILER", "MOVIE", "CINEMA", "ANIME", "MARVEL", "TEASER", "FILM"]):
+        elif any(w in title_upper for w in ["TRAILER", "TEASER", "MOVIE", "CINEMA", "ANIME", "MARVEL", "FILM"]) or "cinema" in topic.lower() or "trailer" in topic.lower():
             action_type = "cinema"
-        elif any(w in title_upper for w in ["NEWS", "VIRAL", "TREND", "TIKTOK", "INTERNET", "BREAKING", "DRAMA"]):
+        elif any(w in title_upper for w in ["NEWS", "VIRAL", "TREND", "TIKTOK", "INTERNET", "BREAKING", "DRAMA"]) or "trivia" in topic.lower():
             action_type = "trend_news"
-        elif any(w in title_upper for w in ["RAGE", "SCREAM", "ANGRY", "FREAKOUT"]):
+        elif any(w in title_upper for w in ["RAGE", "SCREAM", "ANGRY", "FREAKOUT"]) or "rage" in topic.lower():
             action_type = "rage"
-        elif any(w in title_upper for w in ["CAR", "CHASE", "TANK", "DRIVE", "POLICE"]):
+        elif any(w in title_upper for w in ["BEAMNG", "CRASH", "CHASE", "TANK", "DRIVE", "POLICE"]) or "physics" in topic.lower():
             action_type = "chase"
-        elif any(w in title_upper for w in ["NPC", "TALK", "AI", "FUNNY", "WTF"]):
+        elif re.search(r'\b(NPC|TALK|AI BOT|CHATBOT)\b', title_upper):
             action_type = "npc"
         elif any(w in title_upper for w in ["IQ", "WIN", "PRO", "CLUTCH", "HEIST"]):
             action_type = "clutch"
@@ -245,7 +289,7 @@ class AntigravityDirector:
             ],
             "cinema": [
                 f"THIS CINEMATIC SCENE SHOCKED EVERYONE IN THEATERS! 🍿🔥",
-                f"THE PLOT TWIST NOBODY SAW COMING IN {topic.upper()}! 🤯",
+                f"THE PLOT TWIST NOBODY SAW COMING IN {clean_topic}! 🤯",
                 f"THIS TRAILER CLIMAX GAVE THE ENTIRE INTERNET CHILLS! 🎬⚡",
                 f"THE MOST EPIC 30 SECONDS IN CINEMA HISTORY! 💥🎬"
             ],
@@ -256,40 +300,40 @@ class AntigravityDirector:
                 f"THE WEIRDEST VIRAL PHENOMENON OF THE YEAR! 😳🔥"
             ],
             "rage": [
-                f"{streamer.upper()} COMPLETELY LOST HIS MIND IN {topic.upper()}! 💀",
-                f"THE MOST EXPENSIVE RAGE IN {topic.upper()} HISTORY! 😭",
-                f"BRO DID NOT EXPECT THIS IN {topic.upper()}! 🤬",
-                f"{streamer.upper()} BROKE HIS SETUP OVER {topic.upper()}?! 💀"
+                f"{streamer.upper()} COMPLETELY LOST HIS MIND IN {clean_topic}! 💀",
+                f"THE MOST EXPENSIVE RAGE IN {clean_topic} HISTORY! 😭",
+                f"BRO DID NOT EXPECT THIS IN {clean_topic}! 🤬",
+                f"{streamer.upper()} BROKE HIS SETUP OVER {clean_topic}?! 💀"
             ],
             "chase": [
-                f"THE POLICE AI IN {topic.upper()} IS ACTUALLY TERRIFYING! 🚨",
-                f"1000 IQ CAR CHASE ESCAPE IN {topic.upper()}! 🏎️💨",
-                f"NO ONE HAS SURVIVED THIS 5-STAR CHASE IN {topic.upper()}! 💀",
-                f"THIS {topic.upper()} VEHICLE PHYSICS MAKES ZERO SENSE! 🤯"
+                f"THE POLICE AI IN {clean_topic} IS ACTUALLY TERRIFYING! 🚨",
+                f"1000 IQ CAR CHASE ESCAPE IN {clean_topic}! 🏎️💨",
+                f"NO ONE HAS SURVIVED THIS 5-STAR CHASE IN {clean_topic}! 💀",
+                f"THIS {clean_topic} VEHICLE PHYSICS MAKES ZERO SENSE! 🤯"
             ],
             "npc": [
-                f"THIS {topic.upper()} NPC JUST ROASTED HIM LIVE! 💀",
-                f"{topic.upper()} AI WENT OFF SCRIPT AND SAID THIS?! 😭",
-                f"YOU WON'T BELIEVE WHAT THIS NPC DID IN {topic.upper()}! 💀",
-                f"HE CAUGHT AN NPC DOING THIS IN {topic.upper()}! 😳"
+                f"THIS {clean_topic} NPC JUST ROASTED HIM LIVE! 💀",
+                f"{clean_topic} AI WENT OFF SCRIPT AND SAID THIS?! 😭",
+                f"YOU WON'T BELIEVE WHAT THIS NPC DID IN {clean_topic}! 💀",
+                f"HE CAUGHT AN NPC DOING THIS IN {clean_topic}! 😳"
             ],
             "clutch": [
-                f"0.01% CHANCE TO HIT THIS SHOT IN {topic.upper()}! 🎯",
-                f"HE ACCIDENTALLY DISCOVERED THIS {topic.upper()} SECRET! 🤫",
-                f"THE GREATEST 1000 IQ PLAY IN {topic.upper()}! 🔥",
-                f"THEY DID NOT WANT PLAYERS TO FIND THIS IN {topic.upper()}! 🤯"
+                f"0.01% CHANCE TO HIT THIS SHOT IN {clean_topic}! 🎯",
+                f"HE ACCIDENTALLY DISCOVERED THIS {clean_topic} SECRET! 🤫",
+                f"THE GREATEST 1000 IQ PLAY IN {clean_topic}! 🔥",
+                f"THEY DID NOT WANT PLAYERS TO FIND THIS IN {clean_topic}! 🤯"
             ],
             "speed_moment": [
-                f"SPEED'S REACTION TO {topic.upper()} BROKE THE INTERNET! 💀",
-                f"IShowSpeed DID THE IMPOSSIBLE IN {topic.upper()}! ⚡",
-                f"SPEED CANNOT BE REAL PLAYING {topic.upper()}! 😭",
-                f"SPEED FINALLY FOUND THIS IN {topic.upper()}! 💀"
+                f"SPEED'S REACTION TO {clean_topic} BROKE THE INTERNET! 💀",
+                f"IShowSpeed DID THE IMPOSSIBLE IN {clean_topic}! ⚡",
+                f"SPEED CANNOT BE REAL PLAYING {clean_topic}! 😭",
+                f"SPEED FINALLY FOUND THIS IN {clean_topic}! 💀"
             ],
             "glitch": [
-                f"HE ACCIDENTALLY BROKE {topic.upper()} PHYSICS! 💀",
-                f"THE WEIRDEST GLITCH IN {topic.upper()} SO FAR! 🐛",
-                f"WAIT TILL THE END OF THIS {topic.upper()} MOMENT! 💀",
-                f"HE FOUND A GLITCH THEY MISSED IN {topic.upper()}! 🚨"
+                f"HE ACCIDENTALLY BROKE {clean_topic} PHYSICS! 💀",
+                f"THE WEIRDEST GLITCH IN {clean_topic} SO FAR! 🐛",
+                f"WAIT TILL THE END OF THIS {clean_topic} MOMENT! 💀",
+                f"HE FOUND A GLITCH THEY MISSED IN {clean_topic}! 🚨"
             ]
         }
 
@@ -313,8 +357,8 @@ class AntigravityDirector:
         )
 
         # Dynamic, Non-Repetitive Hashtags (Tailored to Topic, Streamer & Action)
-        clean_topic = topic.replace(" ", "")
-        streamer_tag = f"#{streamer.replace(' ', '')}" if streamer and streamer != "Streamer" else "#GamingMoments"
+        clean_tag_topic = "".join(w.capitalize() for w in self._format_clean_topic(topic, video_title).split())
+        clean_streamer_tag = f"#{streamer.replace(' ', '')}" if streamer and streamer not in ("Streamer", "Gamer") else f"#{clean_tag_topic}"
         
         action_tags_pool = {
             "sports": ["#SportsHighlights", "#BuzzerBeater", "#InsanePlay", "#UFC", "#NBA"],
@@ -332,8 +376,15 @@ class AntigravityDirector:
         pool = action_tags_pool.get(action_type, ["#GamingClips", "#ViralGameplay"])
         dynamic_action_tags = rng.sample(pool, min(2, len(pool)))
 
-        base_tags = ["#Shorts", f"#{clean_topic}", streamer_tag]
-        combined_tags = base_tags + dynamic_action_tags + ["#Gaming", "#ViralShorts"]
+        # Genre-specific platform tags (never force #Gaming on cinema or sports)
+        platform_tags = ["#Cinema", "#ViralShorts"] if action_type == "cinema" else (
+            ["#Sports", "#ViralShorts"] if action_type == "sports" else (
+                ["#Viral", "#TrendingShorts"] if action_type == "trend_news" else ["#Gaming", "#ViralShorts"]
+            )
+        )
+
+        base_tags = ["#Shorts", f"#{clean_tag_topic}", clean_streamer_tag]
+        combined_tags = base_tags + dynamic_action_tags + platform_tags
         # Deduplicate while preserving order
         seen = set()
         unique_tags = [t for t in combined_tags if not (t.lower() in seen or seen.add(t.lower()))]

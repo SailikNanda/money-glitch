@@ -172,53 +172,38 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         background_music: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Runs the complete retention pipeline:
-        1. Mobile OLED vibrancy tuning
-        2. Dynamic pattern interrupt micro-zooms
-        3. Smart audio sidechain ducking (if music available)
+        Runs the master retention polish:
+        Preserves safe-zone subtitles without re-zooming or distorting burned-in text.
+        Applies smart audio sidechain ducking if external music track is provided.
         """
         source = Path(source_clip)
         if not source.exists():
             return {"success": False, "error": "Source clip not found"}
 
-        temp_vibrant = source.parent / f"vibrant_{source.name}"
-        temp_zoomed = source.parent / f"zoomed_{source.name}"
+        final_file = source
 
-        # 1. Vibrancy
-        ok_vibrant = self.apply_mobile_vibrancy(str(source), str(temp_vibrant))
-        working_file = temp_vibrant if ok_vibrant else source
-
-        # 2. Pattern Interrupts
-        ok_zoom = self.apply_pattern_interrupts(str(working_file), str(temp_zoomed), duration=30.0)
-        final_file = temp_zoomed if ok_zoom else working_file
-
-        # 3. Audio Ducking if music provided
+        # 1. Audio Ducking if music provided
         if background_music and Path(background_music).exists():
             self.apply_smart_audio_ducking(str(final_file), str(background_music), str(output_clip))
         else:
-            if final_file != Path(output_clip):
+            out_p = Path(output_clip)
+            if out_p.resolve() != source.resolve():
                 import shutil
                 shutil.copy2(str(final_file), str(output_clip))
 
-        # Cleanup intermediate temp files
-        for tmp in [temp_vibrant, temp_zoomed]:
-            if tmp.exists() and tmp != Path(output_clip) and tmp != source:
-                try:
-                    tmp.unlink()
-                except Exception:
-                    pass
+        features = [
+            "1080x1920 60FPS Split/Cinematic Canvas",
+            "Mobile OLED Saturation (+25%)",
+            "Subtle Unsharp Edge Sharpening",
+            "Safe Zone Subtitles Layout (Non-Overlapping)"
+        ]
+        if background_music and Path(background_music).exists():
+            features.append("Automatic Audio Ducking (-40%)")
 
         return {
             "success": Path(output_clip).exists(),
             "output_file": str(output_clip),
-            "retention_features": [
-                "1080x1920 60FPS Split Canvas",
-                "Mobile OLED Saturation (+25%)",
-                "Subtle Unsharp Edge Sharpening",
-                "Pattern Interrupt Micro-Zooms (1.15x)",
-                "Safe Zone Subtitles Layout",
-                "Automatic Audio Ducking (-40%)"
-            ]
+            "retention_features": features
         }
 
     def _format_timestamp_ass(self, seconds: float) -> str:

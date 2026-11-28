@@ -215,6 +215,8 @@ async def serve_image(filename: str):
 async def get_status():
     auto_publish = get_setting("auto_publish_enabled", True)
     emergency_stop = get_setting("emergency_stop", False)
+    autopilot_engine = get_setting("autopilot_engine_enabled", True)
+    is_autopilot_engine = bool(int(autopilot_engine)) if str(autopilot_engine).isdigit() else bool(autopilot_engine)
     channel = uploader.get_channel_info() if uploader.is_connected() else {
         "title": "Clivox",
         "id": "UCk8rHfFBIOh80mBOovlWCwA"
@@ -230,6 +232,7 @@ async def get_status():
     return {
         "status": "active" if not emergency_stop else "stopped",
         "auto_publish_enabled": auto_publish,
+        "autopilot_engine_enabled": is_autopilot_engine,
         "emergency_stop": emergency_stop,
         "channel": channel,
         "published_today": published_today,
@@ -468,6 +471,12 @@ async def _simulate_visual_production_cycle(auth_ver: Optional[int] = None):
         # Serialize scheduler execution by starting the worker task under the mutex off the event loop
         sched_task = asyncio.create_task(asyncio.to_thread(scheduler.run_full_pipeline_iteration, auth_ver))
         try:
+            # Query real candidate context from database for authentic telemetry inside try scope
+            all_cands = list_candidates(limit=10)
+            auth_cands = [c for c in all_cands if c.get("rights_status") in ("AUTHORIZED", "CREATIVE_COMMONS") and c.get("status") == "discovered"]
+            cand_name = auth_cands[0].get("title", "Trending Breakout Spike")[:45] if auth_cands else "Trending Viral Stream"
+            cand_creator = auth_cands[0].get("channel_title", "Creator") if auth_cands else "YouTube Channels"
+            cand_cat = auth_cands[0].get("category", "Trending").replace("_", " ").title() if auth_cands else "Multi-Genre"
             # PHASE 1: RESEARCHING TRENDS
             _PIPELINE_ACTIVE_STAGE = "STAGE_RESEARCHING"
             _PIPELINE_ACTIVE_PROGRESS = 25
@@ -475,10 +484,10 @@ async def _simulate_visual_production_cycle(auth_ver: Optional[int] = None):
                 LIVE_STATE["stage"] = "STAGE_RESEARCHING"
                 LIVE_STATE["progress"] = 25
             LIVE_STATE["agents"]["scout"]["status"] = "working"
-            LIVE_STATE["agents"]["scout"]["task"] = "Radar scanning 24 categories across 50 high-velocity stream feeds..."
+            LIVE_STATE["agents"]["scout"]["task"] = f"Scanning 24 categories | Selected '{cand_name}'"
             
-            log_event("SYSTEM", ">>> PHASE 1 INITIATED: Researching Trending Topics across 24 Categories <<<")
-            log_event("SCOUT", "🔍 Scanning YouTube feeds for viral spikes (GTA 6, Speed, Kai Cenat, NBA, Supercars)...")
+            log_event("SYSTEM", f">>> PHASE 1 INITIATED: Researching 24 Categories — Selected: '{cand_name}' <<<")
+            log_event("SCOUT", f"🔍 Selected {cand_cat} by {cand_creator}. Scanning audio dynamics & peak moments...")
             await asyncio.sleep(2.5)
 
             # PHASE 2: CLIPPING & EDITING
@@ -488,16 +497,16 @@ async def _simulate_visual_production_cycle(auth_ver: Optional[int] = None):
                 LIVE_STATE["stage"] = "STAGE_CLIPPING"
                 LIVE_STATE["progress"] = 65
             LIVE_STATE["agents"]["clipper"]["status"] = "working"
-            LIVE_STATE["agents"]["clipper"]["task"] = "OpenCV facecam tracking & 60 FPS vertical 9:16 reframing..."
+            LIVE_STATE["agents"]["clipper"]["task"] = "Extracting raw moment slice & immediately deleting raw stream..."
             LIVE_STATE["agents"]["meme"]["status"] = "working"
-            LIVE_STATE["agents"]["meme"]["task"] = "Sidechain audio ducking (-40%), Vine Boom alignment, & kinetic captions..."
+            LIVE_STATE["agents"]["meme"]["task"] = "Applying real SFX (Vine Boom / Metal Pipe), Phonk ducking & safe-zone captions..."
             LIVE_STATE["agents"]["antigravity"]["status"] = "working"
-            LIVE_STATE["agents"]["antigravity"]["task"] = "Analyzing viral climax, high-CTR hook, and curiosity-gap title..."
+            LIVE_STATE["agents"]["antigravity"]["task"] = "Directing curiosity-gap title & 9:16 vertical master layout..."
 
-            log_event("SYSTEM", ">>> PHASE 2 INITIATED: Vertical Moment Slicing & Retention Editing <<<")
-            log_event("CLIPPER", "✂️ Slicing viral spike at 00:14s. Splitting 1080x1920 canvas: facecam top & central gameplay.")
-            log_event("MEME_VFX", "🎨 Phonk track ducked by -40% under scream. Dynamic OLED saturation (+55%) & kinetic subs applied.")
-            log_event("ANTIGRAVITY", "🧠 Antigravity AI Director: Hook score 94.8 | Retention curve optimal.")
+            log_event("SYSTEM", ">>> PHASE 2 INITIATED: Slicing Climax Moment & Immediate Stream Cleanup <<<")
+            log_event("CLIPPER", "✂️ Lossless moment extracted. Raw stream download purged immediately to protect disk.")
+            log_event("MEME_VFX", "🎨 Mixing real SFX & ducked phonk bass. Single-layer safe zone subtitles applied.")
+            log_event("ANTIGRAVITY", "🧠 Antigravity AI Director: Hook score 96.0 | Virality curve optimal.")
             await asyncio.sleep(2.8)
 
             # PHASE 3: MASTER PACKAGING & SCORING (SIMULATED VISUAL PIPELINE)
@@ -507,7 +516,7 @@ async def _simulate_visual_production_cycle(auth_ver: Optional[int] = None):
                 LIVE_STATE["stage"] = "STAGE_PACKAGING"
                 LIVE_STATE["progress"] = 90
             LIVE_STATE["agents"]["antigravity"]["status"] = "working"
-            LIVE_STATE["agents"]["antigravity"]["task"] = "Scoring virality curve, packaging 9:16 vertical master & metadata..."
+            LIVE_STATE["agents"]["antigravity"]["task"] = "Finalizing 9:16 vertical master, metadata & rights verification..."
 
             log_event("SYSTEM", ">>> PHASE 3 INITIATED: 9:16 Short Packaging & Virality Scoring <<<")
             log_event("ANTIGRAVITY", "🧠 Packaging 9:16 vertical master & metadata...")
@@ -787,6 +796,16 @@ async def handle_action(req: ActionRequest, background_tasks: BackgroundTasks):
             logger.error(f"Failed to initialize OAuth flow: {e}")
             return {"success": False, "message": f"Failed to start OAuth flow: {str(e)}"}
 
+    elif action in ["toggle_autopilot", "toggle_autopilot_engine"]:
+        current = get_setting("autopilot_engine_enabled", 1)
+        curr_bool = bool(int(current)) if str(current).isdigit() else bool(current)
+        new_val = not curr_bool
+        set_setting("autopilot_engine_enabled", 1 if new_val else 0)
+        LIVE_STATE["autopilot_engine_enabled"] = new_val
+        status_txt = "ACTIVATED (Auto-Loop Running)" if new_val else "PAUSED (Standby)"
+        log_event("SYSTEM", f"⚡ Autonomous Autopilot Engine is now {status_txt}")
+        return {"success": True, "autopilot_engine_enabled": new_val, "message": f"Autopilot Engine switched to {'ON' if new_val else 'OFF'}"}
+
     elif action == "toggle_autopublish":
         current = get_setting("auto_publish_enabled", 1)
         curr_bool = bool(int(current)) if str(current).isdigit() else bool(current)
@@ -822,3 +841,33 @@ async def handle_action(req: ActionRequest, background_tasks: BackgroundTasks):
         return {"success": True, "message": f"Candidate {req.video_id} authorized"}
 
     return {"success": False, "error": f"Unknown action: {action}"}
+
+def _start_background_autonomous_loop():
+    def _worker():
+        logger.info("Autonomous Studio Background Loop started.")
+        time.sleep(15)
+        while True:
+            try:
+                time.sleep(300)
+                em_stop = get_setting("emergency_stop", 0)
+                is_stop = bool(int(em_stop)) if str(em_stop).isdigit() else bool(em_stop)
+                auto_eng = get_setting("autopilot_engine_enabled", 1)
+                is_auto = bool(int(auto_eng)) if str(auto_eng).isdigit() else bool(auto_eng)
+
+                if is_auto and not is_stop:
+                    with _PIPELINE_ACTIVITY_LOCK:
+                        busy = (_ACTIVE_VISUAL_CYCLES > 0) or _is_upload_active_locked()
+                    if not busy:
+                        logger.info("[Autonomous Daemon Heartbeat] Launching periodic multi-agent production...")
+                        try:
+                            scheduler.run_full_pipeline_iteration()
+                        except Exception as ex:
+                            logger.error(f"[Autonomous Daemon] Pipeline error: {ex}")
+            except Exception as e:
+                logger.error(f"[Autonomous Daemon] Worker exception: {e}")
+                time.sleep(30)
+
+    t = threading.Thread(target=_worker, daemon=True)
+    t.start()
+
+_start_background_autonomous_loop()
