@@ -79,7 +79,7 @@ class ClippingEngine:
                 wf.writeframes(norm.tobytes())
             mp3_path = path.with_suffix('.mp3')
             mp3_tmp = path.with_suffix('.mp3.tmp')
-            res = subprocess.run(['ffmpeg', '-y', '-i', str(wav_tmp), '-b:a', '192k', '-f', 'mp3', str(mp3_tmp)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            res = subprocess.run(['ffmpeg', '-y', '-i', str(wav_tmp), '-b:a', '320k', '-f', 'mp3', str(mp3_tmp)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             if res.returncode == 0 and mp3_tmp.exists() and mp3_tmp.stat().st_size > 0:
                 mp3_tmp.replace(mp3_path)
             elif mp3_tmp.exists():
@@ -187,7 +187,7 @@ class ClippingEngine:
                     '-i', str(audio),
                     '-c:v', 'libx264', '-t', '2.0',
                     '-vf', 'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black',
-                    '-c:a', 'aac', '-b:a', '192k',
+                    '-c:a', 'aac', '-b:a', '320k',
                     '-shortest', '-pix_fmt', 'yuv420p',
                     '-f', 'mp4',
                     str(tmp_out)
@@ -225,27 +225,48 @@ class ClippingEngine:
                 download_target = downloads_dir / f"{source_video_id}.mp4"
                 if not download_target.exists():
                     logger.info(f"Downloading source video from {source_path}...")
-                    ydl_opts = {
-                        "format": "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best",
-                        "outtmpl": str(downloads_dir / f"{source_video_id}.%(ext)s"),
-                        "merge_output_format": "mp4",
-                        "quiet": True,
-                        "max_filesize": 400 * 1024 * 1024,
-                        "socket_timeout": 30,
-                        "extractor_args": {"youtube": {"player_client": ["android", "web"]}},
-                        "nocheckcertificate": True
-                    }
-                    try:
-                        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                            ydl.download([source_path])
-                        matches = [
-                            f for f in downloads_dir.glob(f"{source_video_id}.*")
-                            if f.suffix.lower() in [".mp4", ".mkv", ".webm"] and not f.name.endswith((".part", ".ytdl"))
-                        ]
-                        if matches:
-                            source_file = matches[0]
-                    except Exception as e:
-                        logger.error(f"Download failed for {source_path}: {e}")
+                    format_chain = [
+                        "bestvideo[height<=1440][filesize_approx<=600M]+bestaudio[filesize_approx<=80M]/bestvideo[height<=1440]+bestaudio",
+                        "bestvideo[height<=1080][filesize_approx<=450M]+bestaudio[filesize_approx<=60M]/bestvideo[height<=1080]+bestaudio",
+                        "bestvideo[height<=720]+bestaudio/best[height<=720]/best"
+                    ]
+                    for fmt in format_chain:
+                        target_file = downloads_dir / f"{source_video_id}.mp4"
+                        ydl_opts = {
+                            "format": fmt,
+                            "outtmpl": str(downloads_dir / f"{source_video_id}.%(ext)s"),
+                            "merge_output_format": "mp4",
+                            "quiet": True,
+                            "max_filesize": 600 * 1024 * 1024,
+                            "socket_timeout": 30
+                        }
+                        try:
+                            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                                ydl.download([source_path])
+                            if target_file.exists() and target_file.stat().st_size > 0:
+                                source_file = target_file
+                                break
+                            valid_merged = [
+                                f for f in downloads_dir.glob(f"{source_video_id}.*")
+                                if f.suffix.lower() in [".mp4", ".mkv", ".webm"]
+                                and f.name == f"{source_video_id}{f.suffix.lower()}"
+                                and f.stat().st_size > 0
+                            ]
+                            if valid_merged:
+                                source_file = valid_merged[0]
+                                break
+                            for f in downloads_dir.glob(f"{source_video_id}.*"):
+                                try:
+                                    f.unlink()
+                                except Exception:
+                                    pass
+                        except Exception as e:
+                            logger.warning(f"Download with format '{fmt}' failed ({e}), cleaning and trying fallback...")
+                            for f in downloads_dir.glob(f"{source_video_id}.*"):
+                                try:
+                                    f.unlink()
+                                except Exception:
+                                    pass
                 else:
                     source_file = download_target
 
@@ -274,8 +295,8 @@ class ClippingEngine:
                 "-ss", str(start_s),
                 "-t", str(duration_s),
                 "-i", str(source_file),
-                "-c:v", "libx264", "-preset", "ultrafast", "-crf", "18",
-                "-c:a", "aac", "-b:a", "192k",
+                "-c:v", "libx264", "-preset", "fast", "-crf", "14",
+                "-c:a", "aac", "-b:a", "320k", "-ar", "48000",
                 str(raw_slice_path)
             ]
             res = subprocess.run(slice_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -609,45 +630,45 @@ class ClippingEngine:
         safe_hook = hook_title.replace("'", "’").replace(":", " - ").replace('"', '').replace("\\", "")
         safe_hook = re.sub(r'[^\w\s\-\.,!?\'’/]', '', safe_hook).strip()
 
-        # Split title into 1 or 2 lines cleanly positioned in top safe zone (y=90 to 150)
+        # Split title into 1 or 2 lines cleanly positioned in top safe zone (y=90 to 155)
         words = safe_hook.split()
         if len(safe_hook) > 22 and len(words) > 1:
             mid = len(words) // 2
             line1 = " ".join(words[:mid])
             line2 = " ".join(words[mid:])
             title_filter = (
-                f"drawtext=fontfile='{self.font_impact}':text='{line1}':fontsize=46:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=90,"
-                f"drawtext=fontfile='{self.font_impact}':text='{line2}':fontsize=46:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=150"
+                f"drawtext=fontfile='{self.font_impact}':text='{line1}':fontsize=48:fontcolor=#FACC15:borderw=5:bordercolor=black:shadowx=3:shadowy=3:shadowcolor=black@0.8:box=1:boxcolor=black@0.65:boxborderw=10:x=(w-text_w)/2:y=90,"
+                f"drawtext=fontfile='{self.font_impact}':text='{line2}':fontsize=48:fontcolor=#FACC15:borderw=5:bordercolor=black:shadowx=3:shadowy=3:shadowcolor=black@0.8:box=1:boxcolor=black@0.65:boxborderw=10:x=(w-text_w)/2:y=155"
             )
         else:
-            title_filter = f"drawtext=fontfile='{self.font_impact}':text='{safe_hook}':fontsize=48:fontcolor=yellow:borderw=5:bordercolor=black:x=(w-text_w)/2:y=110"
+            title_filter = f"drawtext=fontfile='{self.font_impact}':text='{safe_hook}':fontsize=50:fontcolor=#FACC15:borderw=5:bordercolor=black:shadowx=3:shadowy=3:shadowcolor=black@0.8:box=1:boxcolor=black@0.65:boxborderw=12:x=(w-text_w)/2:y=110"
 
         # Single-layer subtitle footer in true bottom safe zone (y=1530) — NEVER overlapping!
         subtitle_wait = "WAIT FOR THE DROP..." if is_cinema else ("THE IMPOSSIBLE FINISH..." if is_sports else "WAIT FOR THE REACTION...")
         subtitle_climax = "ABSOLUTE CINEMA!" if is_cinema else ("UNBELIEVABLE PLAY!" if is_sports else "THIS CANNOT BE REAL!")
         subtitle_filter = (
-            f"drawtext=fontfile='{self.font_impact}':text='{subtitle_wait}':fontsize=48:fontcolor=white:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1530:enable='between(t,0,{int(climax_t)})',"
-            f"drawtext=fontfile='{self.font_impact}':text='{subtitle_climax}':fontsize=52:fontcolor=#FACC15:borderw=5:bordercolor=black:x=(w-text_w)/2:y=1530:enable='gt(t,{int(climax_t)})'"
+            f"drawtext=fontfile='{self.font_impact}':text='{subtitle_wait}':fontsize=50:fontcolor=white:borderw=5:bordercolor=black:shadowx=3:shadowy=3:shadowcolor=black@0.8:box=1:boxcolor=black@0.65:boxborderw=10:x=(w-text_w)/2:y=1530:enable='between(t,0,{int(climax_t)})',"
+            f"drawtext=fontfile='{self.font_impact}':text='{subtitle_climax}':fontsize=54:fontcolor=#00FFA3:borderw=5:bordercolor=black:shadowx=4:shadowy=4:shadowcolor=black@0.9:box=1:boxcolor=black@0.75:boxborderw=12:x=(w-text_w)/2:y=1530:enable='gt(t,{int(climax_t)})'"
         )
 
-        # Build filter complex based on layout
+        # Build filter complex based on layout (Ultra-High Quality 60FPS Lanczos Studio Canvas)
         if layout_plan.get("is_gaming"):
             filter_complex = (
-                "[0:v]setpts=PTS-STARTPTS,"
-                "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
-                "eq=saturation=1.45:contrast=1.18,boxblur=25:5[bg];"
+                "[0:v]fps=60,setpts=PTS-STARTPTS,"
+                "scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,crop=1080:1920,"
+                "eq=saturation=1.35:contrast=1.12,boxblur=25:5[bg];"
 
-                "[0:v]setpts=PTS-STARTPTS,"
+                "[0:v]fps=60,setpts=PTS-STARTPTS,"
                 f"{layout_plan['facecam_crop']},"
-                "eq=saturation=1.40:contrast=1.20:brightness=0.01,"
-                "unsharp=5:5:0.9:5:5:0.4,"
-                "scale=1080:706[cam];"
+                "eq=saturation=1.30:contrast=1.12:brightness=0.01,"
+                "unsharp=5:5:0.7:5:5:0.3,"
+                "scale=1080:706:flags=lanczos[cam];"
 
-                "[0:v]setpts=PTS-STARTPTS,"
+                "[0:v]fps=60,setpts=PTS-STARTPTS,"
                 f"{layout_plan['gameplay_crop']},"
-                "eq=saturation=1.45:contrast=1.18,"
-                "unsharp=5:5:0.8:5:5:0.4,"
-                "scale=1080:1080[game];"
+                "eq=saturation=1.32:contrast=1.12,"
+                "unsharp=5:5:0.7:5:5:0.3,"
+                "scale=1080:1080:flags=lanczos[game];"
 
                 "[bg][cam]overlay=0:60[v_cam];"
                 "[v_cam][game]overlay=0:800[v_comp];"
@@ -657,13 +678,13 @@ class ClippingEngine:
         else:
             # High-Impact 9:16 Cinematic / Sports / Action Layout (Clean single video framing)
             filter_complex = (
-                "[0:v]setpts=PTS-STARTPTS,"
-                "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
-                "eq=saturation=1.40:contrast=1.15,boxblur=25:5[bg];"
-                "[0:v]setpts=PTS-STARTPTS,"
-                "scale=1080:-2,"
-                "eq=saturation=1.35:contrast=1.12:brightness=0.01,"
-                "unsharp=5:5:0.9:5:5:0.4[fg];"
+                "[0:v]fps=60,setpts=PTS-STARTPTS,"
+                "scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,crop=1080:1920,"
+                "eq=saturation=1.30:contrast=1.10,boxblur=25:5[bg];"
+                "[0:v]fps=60,setpts=PTS-STARTPTS,"
+                "scale=1080:-2:flags=lanczos,"
+                "eq=saturation=1.28:contrast=1.10:brightness=0.01,"
+                "unsharp=5:5:0.7:5:5:0.3[fg];"
                 "[bg][fg]overlay=0:(H-h)/2[v_comp];"
                 f"[v_comp]{title_filter},"
                 f"{subtitle_filter}[v_base]"
@@ -700,12 +721,12 @@ class ClippingEngine:
         if meme_idx is not None:
             if is_greenscreen:
                 filter_complex += (
-                    f";[{meme_idx}:v]colorkey=0x00FF00:0.35:0.15,scale=720:-2[meme_fg];"
+                    f";[{meme_idx}:v]fps=60,colorkey=0x00FF00:0.35:0.15,scale=720:-2:flags=lanczos[meme_fg];"
                     f"[v_base][meme_fg]overlay=(W-w)/2:(H-h)/2:enable='between(t,{climax_t},{climax_t + meme_duration})'[vout]"
                 )
             else:
                 filter_complex += (
-                    f";[{meme_idx}:v]scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[meme_fg];"
+                    f";[{meme_idx}:v]fps=60,scale=1080:1920:force_original_aspect_ratio=decrease:flags=lanczos,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[meme_fg];"
                     f"[v_base][meme_fg]overlay=0:0:enable='between(t,{climax_t},{climax_t + meme_duration})'[vout]"
                 )
         else:
@@ -760,10 +781,12 @@ class ClippingEngine:
             "-map", "[vout]",
             *audio_maps,
             "-c:v", "libx264",
-            "-preset", "veryfast",
-            "-crf", "18",
+            "-preset", "medium",
+            "-crf", "16",
+            "-pix_fmt", "yuv420p",
             "-c:a", "aac",
-            "-b:a", "192k",
+            "-b:a", "320k",
+            "-ar", "48000",
             "-movflags", "+faststart",
             str(output_path)
         ])

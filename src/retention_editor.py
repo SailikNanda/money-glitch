@@ -143,10 +143,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         if not Path(music_path).exists():
             return False
 
-        # FFmpeg sidechain compression filter
+        # FFmpeg sidechain compression filter: speech [0:a] triggers ducking on music [1:a]
         filter_complex = (
-            f"[1:a]volume=0.35,asplit=2[sc][mus];"
-            f"[0:a][sc]sidechaincompress=threshold=0.08:ratio=4:attack=25:release=280[ducked];"
+            f"[1:a]volume=0.35[mus];"
+            f"[mus][0:a]sidechaincompress=threshold=0.08:ratio=4:attack=25:release=280[ducked];"
             f"[0:a][ducked]amix=inputs=2:duration=first:dropout_transition=2[aout]"
         )
 
@@ -159,7 +159,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             "-map", "[aout]",
             "-c:v", "copy",
             "-c:a", "aac",
-            "-b:a", "192k",
+            "-b:a", "320k",
+            "-ar", "48000",
             str(output_video_path)
         ]
         res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -183,22 +184,20 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         final_file = source
 
         # 1. Audio Ducking if music provided
+        ducking_success = False
         if background_music and Path(background_music).exists():
-            self.apply_smart_audio_ducking(str(final_file), str(background_music), str(output_clip))
-        else:
-            out_p = Path(output_clip)
-            if out_p.resolve() != source.resolve():
-                import shutil
-                shutil.copy2(str(final_file), str(output_clip))
+            ducking_success = self.apply_smart_audio_ducking(str(final_file), str(background_music), str(output_clip))
 
-        features = [
-            "1080x1920 60FPS Split/Cinematic Canvas",
-            "Mobile OLED Saturation (+25%)",
-            "Subtle Unsharp Edge Sharpening",
-            "Safe Zone Subtitles Layout (Non-Overlapping)"
-        ]
-        if background_music and Path(background_music).exists():
-            features.append("Automatic Audio Ducking (-40%)")
+        out_p = Path(output_clip)
+        if not ducking_success and out_p.resolve() != source.resolve():
+            import shutil
+            shutil.copy2(str(final_file), str(output_clip))
+
+        features = ["Safe Zone Subtitles Layout Preserved"]
+        if ducking_success:
+            features.append("Smart Sidechain Audio Ducking (-40%)")
+        elif out_p.exists():
+            features.append("Original Stream Audio Retained")
 
         return {
             "success": Path(output_clip).exists(),
